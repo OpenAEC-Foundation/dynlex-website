@@ -197,7 +197,7 @@ function open the DynLex website using {a pointer to UI driver:driver} with {a p
         set state's services to services
         set instance's state to state as a pointer
         show page "/index.html" in instance
-        set view to storage for one slot initialized with (a UI view of instance sized 1280 by 900 using fonts "assets/fonts/Inter-400.ttf" and "assets/fonts/Inter-600.ttf" with driver)
+        set view to storage for one slot initialized with (an unmeasured UI view of instance sized 1280 by 900 using fonts "assets/fonts/Inter-400.ttf" and "assets/fonts/Inter-600.ttf" with driver)
         set state's view to view
         set state's farm's names to UI floating controls attached to (the control labeled "Farm scene" in instance) in view
         set state's shader editor's description to the custom website shader

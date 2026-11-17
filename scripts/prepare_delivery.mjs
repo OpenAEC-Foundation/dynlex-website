@@ -15,7 +15,7 @@ async function compress(directory) {
     else if(/\.(wasm|js|mjs|json|svg|css|html|dl|wgsl|glsl|f32)$/.test(file)) {
       const bytes=await fs.readFile(file);
       await fs.writeFile(file+'.gz',gzipSync(bytes,{level:9}));
-      await fs.writeFile(file+'.br',brotliCompressSync(bytes,{params:{[constants.BROTLI_PARAM_QUALITY]:9}}));
+      await fs.writeFile(file+'.br',brotliCompressSync(bytes,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}));
     }
   }
 }
