@@ -42,20 +42,18 @@ class WebHandler(SimpleHTTPRequestHandler):
         finally:
             self.path = original
 
+    def send_error(self, *args, **kwargs):
+        self.content_encoding = None
+        self.content_type = None
+        return super().send_error(*args, **kwargs)
+
     def guess_type(self, path):
         return self.content_type if self.content_type is not None else super().guess_type(path)
-
-    def send_header(self, keyword, value):
-        super().send_header(keyword, value)
-        if not self.deployment and keyword.lower() == "content-type" and value.split(";", 1)[0] == "text/html":
-            # Evict files cached before this policy, including delayed imports
-            # that a hard reload alone can still reuse. Keep storage and cookies.
-            super().send_header("Clear-Site-Data", '"cache"')
 
     def end_headers(self):
         if self.content_encoding is not None:
             self.send_header("Content-Encoding", self.content_encoding)
-            self.send_header("Vary", "Accept-Encoding")
+        self.send_header("Vary", "Accept-Encoding")
         self.send_header("Cache-Control", "no-cache" if self.deployment else "no-store")
         super().end_headers()
 

@@ -160,6 +160,7 @@ def main():
         shutil.copytree(compiler_root / 'resources/branding', stage / 'assets/branding', dirs_exist_ok=True)
         (stage / 'application.json').write_text(json.dumps({'module': 'application.wasm', 'fonts': project['fonts']}, indent=2) + '\n')
         copy_public_files(site, stage)
+        subprocess.run(['node', str(stage / 'packages/dynlex-ui/tools/wasm_delivery.mjs'), str(stage / 'application.wasm')], check=True)
         subprocess.run(['node', str(root / 'scripts/prepare_delivery.mjs'), str(stage)], check=True)
         if output.exists():
             shutil.rmtree(output)

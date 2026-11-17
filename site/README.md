@@ -17,6 +17,7 @@ DynLex owns the timers, status and completion policy.
 Build and serve from this website repository:
 
 ```bash
+npm ci
 python3 scripts/build_site.py
 ./scripts/view_web.sh 7000
 ```

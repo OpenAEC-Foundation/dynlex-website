@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-const server=spawn('python3',['scripts/serve_web.py','0','--directory',process.env.DYNLEX_TEST_WEB_ROOT],{stdio:['ignore','pipe','ignore']});
+const server=spawn('python3',['scripts/serve_web.py','0','--deployment','--directory',process.env.DYNLEX_TEST_WEB_ROOT],{stdio:['ignore','pipe','ignore']});
 process.env.DYNLEX_SITE_ORIGIN=await new Promise((resolve,reject)=>{
   let output='';server.stdout.on('data',data=>{output+=data;const match=output.match(/Serving DynLex at (http:\/\/[^\s]+)/);if(match)resolve(match[1]);});
   server.once('exit',code=>reject(new Error('Startup server exited: '+code)));
@@ -19,8 +19,9 @@ try {
   await command('Emulation.setCPUThrottlingRate',{rate:Number(process.env.DYNLEX_STARTUP_CPU||4)});
   if(process.env.DYNLEX_STARTUP_NETWORK) await command('Network.emulateNetworkConditions',{
     offline:false,latency:40,downloadThroughput:9_000_000/8,uploadThroughput:2_000_000/8,connectionType:'cellular4g'});
+  await command('Page.addScriptToEvaluateOnNewDocument',{source:await fs.readFile(new URL('./fixtures/ui-color-probe.js',import.meta.url),'utf8')});
   await command('Page.addScriptToEvaluateOnNewDocument',{source:`
-    window.startupProbe={phases:[],texts:[]};
+    window.startupProbe={phases:[{name:'probe',time:performance.now()}],texts:[]};
     const instantiate=WebAssembly.instantiate.bind(WebAssembly);
     WebAssembly.instantiate=(bytes,imports,...args)=>{
       const env=imports?.env;
@@ -45,11 +46,21 @@ try {
   await navigate('/');
   await waitFor('window.startupProbe?.phases.some(p=>p.name==="ui_present")','first usable UI frame',90000);
   if(process.env.DYNLEX_STARTUP_CPU_PROFILE) {const {profile}=await command('Profiler.stop');await fs.writeFile('.cache/startup-main.cpuprofile',JSON.stringify(profile));}
+  const firstFrame=await evaluate('startupProbe.phases.find(p=>p.name==="ui_present").time');
+  const docs=await evaluate('window.colorProbe.find(p=>p.text==="Docs")');
+  assert(docs,'The first frame must expose usable navigation');
+  const clickedAt=await evaluate('performance.now()');
+  await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:docs.x,y:docs.y});
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',x:docs.x,y:docs.y,button:'left',clickCount:1});
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x:docs.x,y:docs.y,button:'left',clickCount:1});
+  await waitFor('location.pathname==="/wiki/index.html" && document.title==="DynLex Wiki"','navigation while background assets are pending');
+  const interactionMs=await evaluate('performance.now()')-clickedAt;
   await new Promise(resolve=>setTimeout(resolve,Number(process.env.DYNLEX_STARTUP_OBSERVE_MS||10000)));
-  const result=await evaluate(`({phases:startupProbe.phases,resources:performance.getEntriesByType('resource').map(e=>({url:e.name,start:e.startTime,end:e.responseEnd,bytes:e.encodedBodySize})),ready:document.readyState})`);
-  result.network=[...files.values()];
+  const result=await evaluate(`({phases:startupProbe.phases,navigation:performance.getEntriesByType('navigation').map(e=>e.toJSON()),resources:performance.getEntriesByType('resource').map(e=>({url:e.name,start:e.startTime,end:e.responseEnd,bytes:e.encodedBodySize})),ready:document.readyState})`);
+  result.network=[...files.values()];result.interactionMs=interactionMs;
+  if(process.env.DYNLEX_STARTUP_BUDGET_MS) assert(firstFrame<=Number(process.env.DYNLEX_STARTUP_BUDGET_MS),`First usable frame took ${firstFrame} ms`);
   const output=process.env.DYNLEX_STARTUP_OUTPUT||'.cache/startup-baseline.json';
   await fs.writeFile(output,JSON.stringify(result,null,2)+'\n');
-  console.log(JSON.stringify({firstFrame:result.phases.find(p=>p.name==='ui_present'),phases:result.phases.filter(p=>p.name!=='longtask'),longTasks:result.phases.filter(p=>p.name==='longtask').sort((a,b)=>b.duration-a.duration).slice(0,8),bytes:result.resources.reduce((sum,r)=>sum+r.bytes,0),requests:result.resources.length,output}));
+  console.log(JSON.stringify({firstFrame:result.phases.find(p=>p.name==='ui_present'),phases:result.phases.filter(p=>p.name!=='longtask'),longTasks:result.phases.filter(p=>p.name==='longtask').sort((a,b)=>b.duration-a.duration).slice(0,8),interactionMs,bytes:result.resources.reduce((sum,r)=>sum+r.bytes,0),requests:result.resources.length,output}));
   assert.deepEqual(runtimeExceptions,[]);assert.deepEqual(consoleErrors,[]);
 } finally {closeBrowserSession();server.kill('SIGTERM');}
