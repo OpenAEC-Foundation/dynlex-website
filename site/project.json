@@ -1,0 +1,13 @@
+{
+  "entry": "site/main.dl",
+  "dependencies": {
+    "dynlex-ui": {
+      "archive": "dependencies/dynlex-ui.zip",
+      "contentHash": "24ab1bd14901e8fc295958f7c4b127cde80908881bd917693b63f586d0bee388"
+    },
+    "dynlex-web": {
+      "archive": "dependencies/dynlex-web.zip",
+      "contentHash": "60d83d627d1e6b82c22189fbebab24928f7370850f55f8cf008f7371d267183d"
+    }
+  }
+}
