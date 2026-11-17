@@ -44,11 +44,11 @@ with open(os.environ['DYNLEX_LAUNCH_CAPTURE'],'a') as output:
             calls = [json.loads(line) for line in capture.read_text().splitlines()] if capture.exists() else []
             return result, calls
 
-    def test_editor_checks_load_the_packaged_semantic_palette(self):
+    def test_browser_fixtures_load_packaged_compiler_resources(self):
         subprocess.run([sys.executable, str(ROOT / 'scripts/dependencies.py')],
                        cwd=ROOT, check=True, capture_output=True)
         result = subprocess.run(['node', '--input-type=module', '-e',
-                                 "await import('./tests/web/editor_feature_checks.mjs')"],
+                                 "await import('./tests/web/editor_feature_checks.mjs'); await import('./tests/web/release_fixture.mjs')"],
                                 cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

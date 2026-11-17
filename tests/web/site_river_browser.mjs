@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {browserRelease as release} from './release_fixture.mjs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -99,12 +100,6 @@ try {
     await command('Page.addScriptToEvaluateOnNewDocument',{source:`if(location.protocol==='http:') localStorage.setItem('dynlex.games.guest',${JSON.stringify(JSON.stringify(progress))});`});
   }
   await command('Browser.setDownloadBehavior', { behavior: 'deny' });
-  const manifest = await fs.readFile(new URL('../../metadata/release-manifest.txt', import.meta.url), 'utf8');
-  const assets = manifest.split('\n').filter(line => line.startsWith('asset ')).map(line => ({
-    name: line.split(/\s+/)[5], browser_download_url: 'https://downloads.invalid/' + line.split(/\s+/)[5]
-  }));
-  assets.push({ name: 'release-manifest.txt', browser_download_url: 'https://downloads.invalid/release-manifest.txt' });
-  const release = { tag_name: 'v0.0-browser-test', body: `<!-- dynlex-release-manifest\n${manifest.trimEnd()}\n-->`, assets };
   const downloads = [];
   intercept = async ({ requestId, request }) => {
     const headers = [{ name: 'Access-Control-Allow-Origin', value: '*' }];
