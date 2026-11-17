@@ -23,8 +23,7 @@ def main():
     parser.add_argument('--compiler', type=Path, default=None)
     parser.add_argument('--frontend', choices=['all', 'native', 'shipped'], default='shipped',
                         help='Select a compiler frontend for preflight checks (default: both).')
-    cases = ['site_controllers', 'site_language', 'site_entry', 'site_shader', 'site_shader_loading', 'site_shader_buffers', 'site_program_events', 'site_river_controller', 'site_river_audio', 'site_progress_controller', 'site_account_profiles', 'site_account_controller', 'site_account_recovery', 'site_reply_ownership']
-    cases.append('site_program_commands')
+    cases = ['site_program_commands', 'site_controllers', 'site_language', 'site_entry', 'site_shader', 'site_shader_loading', 'site_shader_buffers', 'site_program_events', 'site_river_controller', 'site_river_audio', 'site_progress_controller', 'site_account_profiles', 'site_account_controller', 'site_account_recovery', 'site_reply_ownership']
     cases.append('site_program_deadlines')
     cases.append('site_startup')
     cases.append('site_theme_controller')
@@ -99,21 +98,20 @@ def main():
                                cwd=ROOT, check=True, timeout=30)
         jobs = [{'entry': f'tests/web/{name}.dl', 'kind': 'wasm', 'output': f'{name}.browser.wasm'}
                 for name in shipped_cases]
-        if jobs:
+        for job in jobs:
             sources = {source.relative_to(project).as_posix(): source.read_text()
                        for source in project.rglob('*.dl')}
             request = project / 'browser-models.json'
-            request.write_text(json.dumps({'sources': sources, 'jobs': jobs}))
+            request.write_text(json.dumps({'sources': sources, 'jobs': [job]}))
             subprocess.run(['node', str(ROOT / 'scripts/compile_project.mjs'), str(request), str(project)],
-                           cwd=ROOT, check=True, timeout=sum(compilation_budget(Path(job['entry']).stem) for job in jobs))
-            for job in jobs:
-                name = Path(job['entry']).stem
-                command = ['node', str(ROOT / 'tests/web/site_model_runtime.mjs'),
-                           str(project / job['output']), str(ROOT / f'tests/web/models/{name}.txt')] if name in models else [
-                               'node', str(ROOT / f'tests/web/{name}.mjs'), str(project / job['output'])]
-                subprocess.run(command,
-                               cwd=ROOT, check=True, timeout=30)
-                print(f'PASS {job["output"]}', flush=True)
+                           cwd=ROOT, check=True, timeout=compilation_budget(Path(job['entry']).stem))
+            name = Path(job['entry']).stem
+            command = ['node', str(ROOT / 'tests/web/site_model_runtime.mjs'),
+                       str(project / job['output']), str(ROOT / f'tests/web/models/{name}.txt')] if name in models else [
+                           'node', str(ROOT / f'tests/web/{name}.mjs'), str(project / job['output'])]
+            subprocess.run(command,
+                           cwd=ROOT, check=True, timeout=30)
+            print(f'PASS {job["output"]}', flush=True)
 
 
 if __name__ == '__main__':
