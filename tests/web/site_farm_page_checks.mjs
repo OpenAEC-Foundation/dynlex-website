@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {setTimeout as pause} from 'node:timers/promises';
 import {verifyFarmNames} from './site_farm_name_checks.mjs';
+import {profileFarmFrames} from './site_farm_frame_profile.mjs';
 
 // Follow rendered captions and real input; never call application callbacks.
 export async function verifyFarmPage({ command, evaluate, waitFor, controls, capture }) {
@@ -71,6 +72,7 @@ export async function verifyFarmPage({ command, evaluate, waitFor, controls, cap
   await controls.clickText('Pause farm Ⅱ');
   await controls.clickText('Whole farm');
   await waitFor('window.siteProbe.farmBounds !== null');
+  if(process.env.DYNLEX_FARM_PROFILE) await profileFarmFrames({evaluate,controls});
   const before = await evaluate('window.siteProbe.farmFrames.length');
   const point = await evaluate(`(() => {
     const box = window.siteProbe.farmBounds;

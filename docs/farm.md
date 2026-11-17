@@ -252,7 +252,9 @@ The probe compiles the production navigation, save and scene modules with the pi
 compiler, and writes separate timing reports. The WebGL probe replays real scene
 uploads, warms the shaders, waits for GPU completion and saves a screenshot. These
 measurements isolate costs; they do not claim a browser application's frame rate.
-The browser runs headless, muted and with a private profile. An explicitly selected
+For complete application frame timings during the existing gameplay checks, run
+`DYNLEX_FARM_PROFILE=1 DYNLEX_TEST_GRAPHICS=webgl DYNLEX_SITE_SCENARIO=farm ./scripts/test_web_browser.sh`.
+The isolated GPU browser runs headless, muted and with a private profile. An explicitly selected
 `DYNLEX_PROJECT_COMPILER` can compile the CPU probes with a native executable.
 
 The November 2026 measurements found route search below 0.1 ms. World snapshots

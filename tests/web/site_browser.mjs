@@ -138,7 +138,16 @@ try {
   });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: await fs.readFile(new URL('./fixtures/ui-color-probe.js', import.meta.url), 'utf8') });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
-    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0 };
+    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0 };
+    if (${JSON.stringify(Boolean(process.env.DYNLEX_FARM_PROFILE))}) {
+      const requestFrame = window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame = callback => requestFrame(timestamp => {
+        const before = window.siteProbe.farmFrames.length, start = performance.now();
+        callback(timestamp);
+        if (window.siteProbe.farmFrames.length > before && window.siteProbe.farmTimings.length < 4096)
+          window.siteProbe.farmTimings.push({timestamp,cpuMs:performance.now()-start});
+      });
+    }
     const instantiate = WebAssembly.instantiate.bind(WebAssembly);
     WebAssembly.instantiate = function(bytes, imports, ...args) {
       const env = imports?.env;
