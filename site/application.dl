@@ -33,6 +33,8 @@ to get receive website reply {a pointer to JSON value:response} for {integer:job
         set (state's shaders + index)'s loading to false
         set (state's shaders + index)'s resource to resource
         initialize loaded website shader data in (state's shaders + index) using (state's view)
+        if index = state's requested shader:
+            show prepared website shader index in state
         request a UI redraw in (state's view)
     if job = 5:
         receive website release response in state

@@ -32,6 +32,7 @@ class:
         environment as a pointer to JSON value
         shaders as website shader view array of (the length of (the site's shaders)) items
         shader index as an integer
+        requested shader as an integer
         shader weights as a floating-point number array of (the length of (the site's shaders)) items
         release as a pointer to website release
         release loading as a boolean
