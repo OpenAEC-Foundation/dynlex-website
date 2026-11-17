@@ -44,6 +44,14 @@ with open(os.environ['DYNLEX_LAUNCH_CAPTURE'],'a') as output:
             calls = [json.loads(line) for line in capture.read_text().splitlines()] if capture.exists() else []
             return result, calls
 
+    def test_editor_checks_load_the_packaged_semantic_palette(self):
+        subprocess.run([sys.executable, str(ROOT / 'scripts/dependencies.py')],
+                       cwd=ROOT, check=True, capture_output=True)
+        result = subprocess.run(['node', '--input-type=module', '-e',
+                                 "await import('./tests/web/editor_feature_checks.mjs')"],
+                                cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_default_runs_all_scenarios_and_backends_in_private_displays(self):
         result, calls = self.run_launcher()
         self.assertEqual(result.returncode, 0, result.stderr)

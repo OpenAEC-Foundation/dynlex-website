@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {compilerPath} from '../../scripts/dependencies.mjs';
 import {setTimeout as pause} from 'node:timers/promises';
 
-const callColors=JSON.parse(await fs.readFile(new URL('../../shared/call-colors.json',import.meta.url),'utf8'));
+const callColors=JSON.parse(await fs.readFile(compilerPath('shared/call-colors.json'),'utf8'));
 
 export async function verifySourceNavigationAppearance({waitFor,disabled}) {
   for(const label of ['Back','Main file']) {
