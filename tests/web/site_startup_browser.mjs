@@ -19,8 +19,10 @@ try {
   await command('Emulation.setCPUThrottlingRate',{rate:Number(process.env.DYNLEX_STARTUP_CPU||4)});
   if(process.env.DYNLEX_STARTUP_NETWORK) await command('Network.emulateNetworkConditions',{
     offline:false,latency:40,downloadThroughput:9_000_000/8,uploadThroughput:2_000_000/8,connectionType:'cellular4g'});
+  const stored=process.env.DYNLEX_STARTUP_SAVED?JSON.parse(await fs.readFile(new URL('./fixtures/progress-model.json',import.meta.url),'utf8')).expected.find(value=>value.games?.farm):null;
   await command('Page.addScriptToEvaluateOnNewDocument',{source:await fs.readFile(new URL('./fixtures/ui-color-probe.js',import.meta.url),'utf8')});
   await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+    if (${JSON.stringify(Boolean(process.env.DYNLEX_STARTUP_SAVED))}) localStorage.setItem('dynlex.games.guest',${JSON.stringify(JSON.stringify(stored))});
     window.startupProbe={phases:[{name:'probe',time:performance.now()}],texts:[]};
     const instantiate=WebAssembly.instantiate.bind(WebAssembly);
     WebAssembly.instantiate=(bytes,imports,...args)=>{
