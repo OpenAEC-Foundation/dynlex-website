@@ -14,6 +14,8 @@ with urlopen(URL) as response:
     source = response.read()
 if hashlib.sha256(source).hexdigest() != DIGEST:
     raise ValueError('The pinned Inter source digest changed')
-font = instantiateVariableFont(TTFont(BytesIO(source)), {'opsz': 14, 'wght': (400, 400, 600)})
+font = instantiateVariableFont(TTFont(BytesIO(source), recalcTimestamp=False), {'opsz': 14, 'wght': (400, 400, 600)})
+# Format 3 omits glyph debug names; all glyphs, cmap and shaping tables remain.
+font['post'].formatType = 3.0
 font.flavor = 'woff2'
 font.save(root / 'site/assets/fonts/Inter-400-600.woff2')

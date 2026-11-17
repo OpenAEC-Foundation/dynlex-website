@@ -23,7 +23,7 @@ try {
   await command('Page.addScriptToEvaluateOnNewDocument',{source:await fs.readFile(new URL('./fixtures/ui-color-probe.js',import.meta.url),'utf8')});
   await command('Page.addScriptToEvaluateOnNewDocument',{source:`
     if (${JSON.stringify(Boolean(process.env.DYNLEX_STARTUP_SAVED))}) localStorage.setItem('dynlex.games.guest',${JSON.stringify(JSON.stringify(stored))});
-    window.startupProbe={phases:[{name:'probe',time:performance.now()}],texts:[]};
+    window.startupProbe={phases:[{name:'probe',time:performance.now()}]};
     const instantiate=WebAssembly.instantiate.bind(WebAssembly);
     WebAssembly.instantiate=(bytes,imports,...args)=>{
       const env=imports?.env;
@@ -32,12 +32,6 @@ try {
           const original=env[name];let recorded=false;
           env[name]=(...args)=>{const result=original(...args);if(!recorded){recorded=true;startupProbe.phases.push({name,time:performance.now()});}return result;};
         }
-        const mask=env.ui_text_mask,decoder=new TextDecoder();
-        env.ui_text_mask=(font,pointer,count,...args)=>{
-          const result=mask(font,pointer,count,...args);
-          if(result)startupProbe.texts.push(decoder.decode(new Uint8Array(env.__linear_memory.buffer,pointer,count)));
-          return result;
-        };
       }
       return instantiate(bytes,imports,...args);
     };

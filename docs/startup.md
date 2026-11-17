@@ -65,5 +65,7 @@ standalone executable; no system service needs to be started.
 
 The Inter delivery font comes from Inter 4.001, the same version as the native
 faces, pinned in `scripts/prepare_inter.py`. Its optical size is 14 and its weight
-range is 400–600. The existing Inter OFL notice covers it. Regeneration requires
+range is 400–600. Glyph debug names are removed while retaining all glyphs,
+encoded characters and OpenType layout features. The existing
+Inter OFL notice covers it. Regeneration requires
 `fonttools[woff]==4.68.0`; ordinary site builds use the committed WOFF2 asset.
