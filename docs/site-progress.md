@@ -72,7 +72,7 @@ underflow, while its original valid JSON text is retained; constructors accept
 finite numbers. JSON permits implementations to bound numeric range and precision.
 See [RFC 8259, section 6](https://www.rfc-editor.org/rfc/rfc8259.html#section-6).
 
-`tests/web/json_numbers.mjs` compares native and Wasm conversions with an
+The compiler repository’s [`tests/web/json_numbers.mjs`](https://github.com/OpenAEC-Foundation/dynlex/blob/master/tests/web/json_numbers.mjs) compares native and Wasm conversions with an
 independent JavaScript oracle across binade boundaries, adjacent values, exact
 halfway ties, extreme exponents, and long decimal inputs. It also checks buffer
 ownership. The native/Wasm oracle runs in the integration suite; `--shipped`

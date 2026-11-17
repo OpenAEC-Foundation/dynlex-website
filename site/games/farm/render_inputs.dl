@@ -1,5 +1,6 @@
 import program.dl
 import camera.dl
+import atmosphere.dl
 import ../../packages/dynlex-ui/ui/shader_values.dl
 
 class:
@@ -33,8 +34,8 @@ to get [the website Farm sunlight matrix]:
     set projection to a graphics orthographic projection from left -16.0 right 16.0 top 16.0 bottom -16.0 near 0.5 far 60.0
     return the graphics product of projection and view
 
-to get [a website Farm light from RGB] {integer:encoded} [with strength] {floating-point number:strength}:
-    set color to linear UI ink from (UI ink from RGB encoded)
+to get [a website Farm light colored] {UI paint:ink} [with strength] {floating-point number:strength}:
+    set color to linear UI ink from ink
     return a UI float shader vector from [color's red * strength,color's green * strength,color's blue * strength,0.0]
 
 to [prepare website Farm frame inputs in] {website Farm shader inputs:inputs} [through] {UI scene camera:camera} [at] {floating-point number:seconds} [with rain] {floating-point number:rain} [sized] {integer:width} [by] {integer:height}:
@@ -48,10 +49,10 @@ to [prepare website Farm frame inputs in] {website Farm shader inputs:inputs} [t
     add website Farm input (a UI float shader vector from [eye's x,eye's y,eye's z,seconds]) at binding 2 in pass pass to inputs
     set sun to (a UI scene vector from [-12.0,21.0,9.0]) normalized
     add website Farm input (a UI float shader vector from [sun's x,sun's y,sun's z,3.0 - 1.5 * rain]) at binding 3 in pass pass to inputs
-    add website Farm input (a website Farm light from RGB 16770230 with strength 1.0) at binding 4 in pass pass to inputs
-    add website Farm input (a website Farm light from RGB 14479354 with strength 2.1) at binding 5 in pass pass to inputs
-    add website Farm input (a website Farm light from RGB 7959119 with strength 2.1) at binding 6 in pass pass to inputs
-    add website Farm input (a website Farm light from RGB 13950403 with strength 1.0) at binding 7 in pass pass to inputs
+    add website Farm input (a website Farm light colored (UI ink from RGB 16770230) with strength 1.0) at binding 4 in pass pass to inputs
+    add website Farm input (a website Farm light colored (UI ink from RGB 14479354) with strength 2.1) at binding 5 in pass pass to inputs
+    add website Farm input (a website Farm light colored (UI ink from RGB 7959119) with strength 2.1) at binding 6 in pass pass to inputs
+    add website Farm input (a website Farm light colored (the website Farm horizon color) with strength 1.0) at binding 7 in pass pass to inputs
     add website Farm input (a UI float shader vector from [0.0,2048.0,-0.0002,0.02]) at binding 8 in pass pass to inputs
     add website Farm input (a UI float shader vector from [0.75,((the website Farm reflection levels) - 1),0.0,0.0]) at binding 15 in pass pass to inputs
     add website Farm input (a UI float shader vector from [rain,0.0,0.0,0.0]) at binding 16 in pass pass to inputs

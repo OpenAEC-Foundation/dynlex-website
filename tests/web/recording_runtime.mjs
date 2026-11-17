@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { buildRuntimeImports, createRuntimeFilesystem, inspectRuntimeWasmLayout } from './compiler_runtime.mjs';
 import {observeAllocations} from './allocation_probe.mjs';
 
-export async function recordWebsiteProgram(file, { allocationLimit, synchronousService=()=>{throw new Error('Unexpected immediate platform call');}, hooks={}, shaderQuery = () => {throw new Error('Unexpected shader range query');}, renderShader = () => { throw new Error('Unexpected shader rendering'); }, cancelRequest = () => {
+export async function recordWebsiteProgram(file, { allocationLimit, configureRuntime=()=>{}, synchronousService=()=>{throw new Error('Unexpected immediate platform call');}, hooks={}, shaderQuery = () => {throw new Error('Unexpected shader range query');}, renderShader = () => { throw new Error('Unexpected shader rendering'); }, cancelRequest = () => {
   throw new Error('The controller unexpectedly cancelled a platform request');
 } } = {}) {
   const bytes = await readFile(file);
@@ -52,6 +52,7 @@ export async function recordWebsiteProgram(file, { allocationLimit, synchronousS
   runtime.env.ui_shader_buffer_records = (surface,resource,pass,slot) => shaderQuery({operation:'records',surface,resource,pass,slot});
   runtime.env.ui_shader_index_count = (surface,resource,pass) => shaderQuery({operation:'indices',surface,resource,pass});
   runtime.env.ui_shader_close = (surface,resource) => {shaderCalls.push({operation:'close',surface,resource});};
+  configureRuntime(runtime);
   const { instance } = await WebAssembly.instantiate(bytes, runtime);
   try { instance.exports.main(); }
   catch (error) { throw new Error(output.join(''), { cause: error }); }

@@ -3,11 +3,11 @@
   "dependencies": {
     "dynlex-ui": {
       "archive": "dependencies/dynlex-ui.zip",
-      "contentHash": "24ab1bd14901e8fc295958f7c4b127cde80908881bd917693b63f586d0bee388"
+      "contentHash": "e1c1ab33b199546b714f0e12eedbac4cafc94b5eb5dad39dafb58e5a4d71e1b2"
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
-      "contentHash": "60d83d627d1e6b82c22189fbebab24928f7370850f55f8cf008f7371d267183d"
+      "contentHash": "27f02cd4a03d92dbf607b66221475b21d0c63497bb9a2becb5f9d812230ad2a2"
     }
   }
 }

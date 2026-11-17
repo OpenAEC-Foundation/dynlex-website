@@ -1,4 +1,5 @@
 import scene_landscape_update.dl
+import atmosphere.dl
 
 to get [a website Farm landscape for] {a pointer to website farm world:world}:
     set result to storage for one slot initialized with (a new website Farm landscape)
@@ -13,12 +14,13 @@ to get [a website Farm landscape for] {a pointer to website farm world:world}:
     set library to the address of (result's library)
     set result's barn to a website Farm object named "barn" using (a Farm house with library) in result
     set result's compost to a website Farm object named "compost" using (a Farm compost bin with library) in result
-    set material to a Farm art material colored [184,200,166]
+    set material to a UI scene material with color (the website Farm horizon color) roughness 1.0 metalness 0.0
+    set material's unlit to true
     set model to a website Farm scene model using (the Farm shape named "plane" in library) colored material casting shadow false
-    set floor to a website Farm object named "floor" using model in result
-    set floor's pickable to false
+    set backdrop to a website Farm object named "backdrop" using model in result
+    set backdrop's pickable to false
     set pose to a Farm art pose at [0.0,-0.72,0.0] sized [250.0,250.0,1.0] turned [-1.5707963267948966,0.0,0.0]
-    set UI scene root pose in (floor's instance) to pose
+    set UI scene root pose in (backdrop's instance) to pose
     set material to a Farm art material colored [102,93,66]
     set model to a website Farm scene model using (the Farm shape named "box" in library) colored material casting shadow true
     set base to a website Farm object named "base" using model in result

@@ -167,8 +167,9 @@ Crop geometry includes feathery carrot leaves and wheat stalks, leaves, ears and
 awns, with seedlings, green growth and mature plants. Each bed uses a single
 colored mesh to keep the detailed foliage economical to render.
 
-After changing the generated library, run `scripts/build_web.sh` followed by
-`python3 scripts/build_site.py` to refresh the generated site and compiler payload.
+After changing the Farm vocabulary, run `python3 scripts/generate_farm_vocabulary.py`
+and `python3 scripts/build_site.py`. Compiler and renderer changes require updating
+their pinned packages first; see the repository README.
 Reload an already-open preview after rebuilding: its running compiler worker
 retains the libraries from the build it loaded.
 Use `scripts/view_web.sh 8880` for the local preview. Its server prevents asset
@@ -239,3 +240,29 @@ in DynLex under `site/games/farm/`.
 `node tests/web/farm_models.mjs --shipped` checks the catalog,
 99 parser cases and 16 routine scenarios against independent snapshots in native
 O0/O2 builds and through the browser compiler.
+
+## Performance probes
+
+```sh
+python3 tests/web/prepare_farm_profile.py --output .cache/farm-profile --browser
+```
+
+Build the site first, or pass `--program /absolute/path/to/assets/games/farm/program.json`.
+The probe compiles the production navigation, save and scene modules with the pinned
+compiler, and writes separate timing reports. The WebGL probe replays real scene
+uploads, warms the shaders, waits for GPU completion and saves a screenshot. These
+measurements isolate costs; they do not claim a browser application's frame rate.
+The browser runs headless, muted and with a private profile. An explicitly selected
+`DYNLEX_PROJECT_COMPILER` can compile the CPU probes with a native executable.
+
+The November 2026 measurements found route search below 0.1 ms. World snapshots
+under 2,000 retained allocation holes took 96.37 ms median before the shared
+runtime's free-range and allocation-metadata changes, and 6.45 ms afterward.
+Unfragmented snapshots fell from 5.48 ms to 3.01 ms. The shared WebGL host now
+retains validated draws and generated primitive indices when only instance data
+changes. A 960×640 scene replay measured 9.3–9.4 ms before these updates and
+1.2–1.4 ms afterward on the same local software backend.
+
+`atmosphere.dl` defines the shared blue backdrop and aerial haze color. The distant
+backdrop is unlit so terrain lighting cannot tint it green; the reflection sky
+and material-lighting reference values retain their own definitions.

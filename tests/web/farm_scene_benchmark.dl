@@ -1,0 +1,34 @@
+# Measure production scene updates without GPU execution or copied test buffers.
+import ../../site/games/farm/rendering.dl
+import ../../site/packages/dynlex-ui/platform/browser/shaders.dl
+
+set driver to a new UI driver
+set driver's shader operations to the browser UI shader operations
+set view to a new UI view
+set view's driver to the address of driver
+set view's window to 7 as a pointer
+set document to the initial website farm document
+set world to document's world
+set viewport to UI box at 0.0 0.0 sized 960.0 640.0
+set renderer to a website Farm renderer for world in viewport using shader (42 as a pointer) in (the address of view)
+ignore (the rendered website Farm renderer sized 960 by 640 in viewport)
+loop scenario from 0 to 2:
+    if scenario = 1:
+        set actor to world's player
+        set document's selected to actor's id
+        set actor's target's present to true
+        set actor's target's x to 14
+        set actor's target's y to 19
+        set actor's target's adjacent to false
+        supply website Farm navigation (the website Farm navigation shown for document) in renderer
+    loop frame from 0 to 110:
+        @intrinsic("call", "host", "begin_scene_sample", nothing, scenario, frame)
+        if (scenario = 1) and ((frame % 25) = 0):
+            ignore (move website farm actor (world's player) towards (website farm point 14 19) in world adjacently false)
+            update website Farm renderer renderer from world over 0.4 seconds instantly false
+            supply website Farm navigation (the website Farm navigation shown for document) in renderer
+        ignore (advance website Farm renderer renderer over (1.0 / 60.0) seconds dragging "")
+        ignore (the rendered website Farm renderer sized 960 by 640 in viewport)
+        @intrinsic("call", "host", "end_scene_sample", nothing, the length of (renderer's frame's records), the length of (renderer's frame's draws), the length of (renderer's frame's shadow records))
+close website Farm renderer renderer
+free website farm document document

@@ -2,6 +2,16 @@ import ../../site/games/farm/scene_landscape.dl
 
 set world to the initial website farm world
 set landscape to a website Farm landscape for world
+set found to false
+for each object in (landscape's objects):
+    if object's name = "backdrop":
+        set found to true
+        set part to the item at 0 in (object's instance's model's parts)
+        require condition (part's material's unlit) reporting "The distant backdrop must skip physical material lighting"
+        require condition (((part's casts shadow) = false) and ((object's pickable) = false)) reporting "The backdrop must not participate in farm interaction or shadows"
+        set color to part's material's color
+        require condition ((color's blue > color's green) and (color's green > color's red)) reporting "The Farm horizon reverted to a green backdrop"
+require condition found reporting "The Farm scene is missing its backdrop"
 set bank to a UI scene mesh bank
 set frame to a UI scene frame using bank
 set camera to a UI scene camera at (a UI scene vector from [12.0,18.0,15.0]) aimed at (a UI scene vector from [0.0,0.4,0.0]) with angle 35.0 aspect 1.0 near 0.1 far 150.0

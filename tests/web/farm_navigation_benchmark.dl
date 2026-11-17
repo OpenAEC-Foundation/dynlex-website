@@ -1,0 +1,11 @@
+# Measure the production route planner independently of painting and controls.
+import site/games/farm/navigation.dl
+
+set world to the initial website farm world
+set targets to [website farm point 7 12, website farm point 14 19, website farm point 0 0, website farm point 19 19]
+loop round from 0 to 101:
+    loop scenario from 0 to (the length of targets):
+        @intrinsic("call", "host", "begin_route_sample", nothing, round, scenario)
+        set route to the website farm route from (world's player) to (the item at scenario in targets) in world adjacently false
+        @intrinsic("call", "host", "end_route_sample", nothing, route's reachable, the length of (route's steps))
+free website farm world world

@@ -471,7 +471,9 @@
     "tests/web/site_theme_controller.mjs",
     "tests/web/site_worker_checks.mjs",
     "tests/web/source_package.py",
-    "tests/web/source_search_checks.mjs"
+    "tests/web/source_search_checks.mjs",
+    "tools/homepage-shaders/README.md",
+    "tools/homepage-shaders/generate-point-cloud.py"
   ],
   "relocated": {
     "lib/farm_challenge.dl": "site/language/farm_challenge.dl",

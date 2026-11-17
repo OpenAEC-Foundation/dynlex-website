@@ -1,0 +1,11 @@
+import site/games/farm/document.dl
+
+set document to the initial website farm document
+loop sample from 0 to 26:
+    @intrinsic("call", "host", "begin_save_sample", nothing, sample)
+    set snapshot to the website farm snapshot of document
+    @intrinsic("call", "host", "snapshot_finished", nothing)
+    set text to the compact JSON form of snapshot
+    @intrinsic("call", "host", "serialization_finished", nothing, the length of text)
+    free snapshot
+free website farm document document
