@@ -58,9 +58,11 @@ try {
   await new Promise(resolve=>setTimeout(resolve,Number(process.env.DYNLEX_STARTUP_OBSERVE_MS||10000)));
   const result=await evaluate(`({phases:startupProbe.phases,navigation:performance.getEntriesByType('navigation').map(e=>e.toJSON()),resources:performance.getEntriesByType('resource').map(e=>({url:e.name,start:e.startTime,end:e.responseEnd,bytes:e.encodedBodySize})),ready:document.readyState})`);
   result.network=[...files.values()];result.interactionMs=interactionMs;
-  if(process.env.DYNLEX_STARTUP_BUDGET_MS) assert(firstFrame<=Number(process.env.DYNLEX_STARTUP_BUDGET_MS),`First usable frame took ${firstFrame} ms`);
   const output=process.env.DYNLEX_STARTUP_OUTPUT||'.cache/startup-baseline.json';
   await fs.writeFile(output,JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify({firstFrame:result.phases.find(p=>p.name==='ui_present'),phases:result.phases.filter(p=>p.name!=='longtask'),longTasks:result.phases.filter(p=>p.name==='longtask').sort((a,b)=>b.duration-a.duration).slice(0,8),interactionMs,bytes:result.resources.reduce((sum,r)=>sum+r.bytes,0),requests:result.resources.length,output}));
+  assert(!result.network.some(file=>new URL(file.url).pathname.endsWith('/dynlex_web.wasm')),
+    'Navigation downloaded the optional compiler before an editor needed it');
+  if(process.env.DYNLEX_STARTUP_BUDGET_MS) assert(firstFrame<=Number(process.env.DYNLEX_STARTUP_BUDGET_MS),`First usable frame took ${firstFrame} ms`);
   assert.deepEqual(runtimeExceptions,[]);assert.deepEqual(consoleErrors,[]);
 } finally {closeBrowserSession();server.kill('SIGTERM');}
