@@ -1,0 +1,6 @@
+.worktrees/
+.cache/
+build/
+node_modules/
+__pycache__/
+*.out
