@@ -7,6 +7,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import os
+import signal
+import queue
+import threading
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -16,6 +21,86 @@ from source_package import SourcePackage
 def compilation_budget(name):
     # Dispatch and initial-route fixtures link the source workspace and 3D scene.
     return 600 if name in ['site_farm_controller', 'site_farm_profiles', 'site_farm_rebuilding', 'site_farm_labels', 'site_reply_ownership', 'site_startup'] else 180
+
+
+def run_shipped_fixtures(project, jobs, models):
+    sources = {source.relative_to(project).as_posix(): source.read_text()
+               for source in project.rglob('*.dl')}
+    request = project / 'browser-models.json'
+    request.write_text(json.dumps({'sources': sources, 'jobs': jobs}))
+    environment = dict(os.environ)
+    environment.pop('DYNLEX_PROJECT_COMPILER', None)
+    if os.name == 'nt' and not shutil.which('taskkill'):
+        raise RuntimeError('Fixture cancellation requires Windows taskkill')
+    options = ({'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == 'nt'
+               else {'start_new_session': True})
+    command = ['node', str(ROOT / 'scripts/compile_project.mjs'), str(request), str(project)]
+    process = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, text=True, encoding='utf-8', **options)
+    messages = queue.Queue()
+
+    def read_output():
+        try:
+            for line in process.stdout:
+                messages.put(line)
+        except Exception as error:
+            messages.put(error)
+        finally:
+            messages.put(None)
+
+    reader = threading.Thread(target=read_output, daemon=True)
+    reader.start()
+    deadline = time.monotonic() + sum(compilation_budget(Path(job['entry']).stem) for job in jobs)
+    completed = 0
+    try:
+        while True:
+            try:
+                line = messages.get(timeout=max(0, deadline - time.monotonic()))
+            except queue.Empty:
+                raise subprocess.TimeoutExpired(command, 'fixture compilation budget') from None
+            if isinstance(line, Exception):
+                raise line
+            if line is None:
+                break
+            print(line, end='', flush=True)
+            if not line.startswith('Compiled '):
+                continue
+            if completed == len(jobs):
+                raise RuntimeError('The compiler reported an unexpected extra artifact')
+            job = jobs[completed]
+            if not line.startswith(f'Compiled {job["entry"]} → {job["output"]} ('):
+                raise RuntimeError(f'Unexpected compiler completion: {line.rstrip()}')
+            name = Path(job['entry']).stem
+            verify = ['node', str(ROOT / 'tests/web/site_model_runtime.mjs'),
+                      str(project / job['output']), str(ROOT / f'tests/web/models/{name}.txt')] if name in models else [
+                          'node', str(ROOT / f'tests/web/{name}.mjs'), str(project / job['output'])]
+            subprocess.run(verify, cwd=ROOT, check=True, timeout=30)
+            print(f'PASS {job["output"]}', flush=True)
+            completed += 1
+        result = process.wait(timeout=max(0, deadline - time.monotonic()))
+        if result:
+            raise subprocess.CalledProcessError(result, command)
+        if completed != len(jobs):
+            raise RuntimeError('The compiler exited before producing every fixture')
+    finally:
+        if process.poll() is None:
+            if os.name == 'nt':
+                subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'], check=True,
+                               stdout=subprocess.DEVNULL)
+            else:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass  # The process can exit between poll and cancellation.
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired as error:
+                if os.name == 'nt':
+                    raise RuntimeError('taskkill completed but the compiler did not exit') from error
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=5)
+        reader.join(timeout=5)
+        process.stdout.close()
 
 
 def main():
@@ -98,20 +183,8 @@ def main():
                                cwd=ROOT, check=True, timeout=30)
         jobs = [{'entry': f'tests/web/{name}.dl', 'kind': 'wasm', 'output': f'{name}.browser.wasm'}
                 for name in shipped_cases]
-        for job in jobs:
-            sources = {source.relative_to(project).as_posix(): source.read_text()
-                       for source in project.rglob('*.dl')}
-            request = project / 'browser-models.json'
-            request.write_text(json.dumps({'sources': sources, 'jobs': [job]}))
-            subprocess.run(['node', str(ROOT / 'scripts/compile_project.mjs'), str(request), str(project)],
-                           cwd=ROOT, check=True, timeout=compilation_budget(Path(job['entry']).stem))
-            name = Path(job['entry']).stem
-            command = ['node', str(ROOT / 'tests/web/site_model_runtime.mjs'),
-                       str(project / job['output']), str(ROOT / f'tests/web/models/{name}.txt')] if name in models else [
-                           'node', str(ROOT / f'tests/web/{name}.mjs'), str(project / job['output'])]
-            subprocess.run(command,
-                           cwd=ROOT, check=True, timeout=30)
-            print(f'PASS {job["output"]}', flush=True)
+        if jobs:
+            run_shipped_fixtures(project, jobs, models)
 
 
 if __name__ == '__main__':
