@@ -17,8 +17,8 @@ try {
   assert.match(workflow,/RELEASE: \$\{\{ github\.sha \}\}/);
   assert.match(workflow,/python3 scripts\/build_site\.py --base "\/releases\/\$RELEASE\/" --output "\$RUNNER_TEMP\/site"/);
   assert.match(workflow,/mv -Tf "\$DEPLOY_PATH\/current\.next" "\$DEPLOY_PATH\/current"/);
-  assert.match(workflow,/max-age=31536000, immutable/);
-  assert.match(workflow,/add_header Cache-Control "no-cache" always/);
+  assert.match(workflow,/python3 scripts\/nginx_delivery\.py --root "\$DEPLOY_PATH"/);
+  assert.match(workflow,/mv "\$DEPLOY_PATH\/\.nginx-\$RELEASE\.conf" "\$config_path"/);
   assert.match(workflow,/-mmin \+1440/);
   const pages=JSON.parse(await readFile(path.join(directory,'routes.json'),'utf8'));
   assert(pages.some(page=>page.path==='/river-character-sheet.html'),
