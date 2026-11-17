@@ -11,6 +11,7 @@ import { verifySourceCompletion, verifySourcePaste, verifySourceDefinition, veri
 import {canvasControls} from './canvas_controls.mjs';
 import {verifySourceSearch} from './source_search_checks.mjs';
 import {verifyFarmPage} from './site_farm_page_checks.mjs';
+import {profileFarmWalk} from './site_farm_frame_profile.mjs';
 import {verifyFarmRestore} from './site_farm_restore_checks.mjs';
 import {verifyFarmWeather} from './site_farm_weather_checks.mjs';
 import {verifyIdeTheme} from './site_theme_checks.mjs';
@@ -18,6 +19,7 @@ import {verifyRiverInspection} from './site_river_inspection_checks.mjs';
 
 const directory = path.resolve(process.argv[2] || 'build/site');
 const graphicsMode = process.argv[3] || 'system';
+const farmProfiling = Boolean(process.env.DYNLEX_FARM_PROFILE || process.env.DYNLEX_FARM_PROFILE_ONLY);
 const assetBase = process.argv[4] || '/';
 assert(['system', 'webgpu', 'webgl-no-adapter', 'webgl-no-api'].includes(graphicsMode));
 assert(assetBase.startsWith('/') && assetBase.endsWith('/'));
@@ -54,7 +56,7 @@ const server = http.createServer(async (request, response) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const chrome = spawn(process.env.CHROME || 'google-chrome', [
-  ...(process.env.DYNLEX_BACKGROUND_BROWSER ? ['--ozone-platform=x11'] : ['--headless=new']),
+  ...(process.env.DYNLEX_BACKGROUND_BROWSER && !process.env.DYNLEX_FARM_PROFILE_HEADLESS ? ['--ozone-platform=x11'] : ['--headless=new']),
   ...(graphicsMode === 'webgpu' ? ['--enable-gpu', '--enable-unsafe-webgpu',
     '--enable-features=Vulkan', '--use-angle=vulkan', '--use-vulkan=swiftshader',
     '--use-webgpu-adapter=swiftshader', '--disable-vulkan-surface'] : []),
@@ -79,12 +81,15 @@ try {
   await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
   let sequence = 0; const pending = new Map(), errors = [];
   let intercept;
+  const traceEvents=[];let traceComplete=false;
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data);
     if (message.id) {
       const operation = pending.get(message.id); pending.delete(message.id);
       if (message.error) operation.reject(new Error(message.error.message)); else operation.resolve(message.result);
-    } else if (message.method === 'Fetch.requestPaused') {
+    } else if (message.method === 'Tracing.dataCollected') traceEvents.push(...message.params.value);
+    else if (message.method === 'Tracing.tracingComplete') traceComplete=true;
+    else if (message.method === 'Fetch.requestPaused') {
       intercept(message.params).catch(error => errors.push(String(error)));
     } else if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
     else if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') {
@@ -133,15 +138,24 @@ try {
   });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: await fs.readFile(new URL('./fixtures/ui-color-probe.js', import.meta.url), 'utf8') });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
-    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0 };
-    if (${JSON.stringify(Boolean(process.env.DYNLEX_FARM_PROFILE))}) {
+    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0 };
+    if (${JSON.stringify(farmProfiling)}) {
       const requestFrame = window.requestAnimationFrame.bind(window);
-      window.requestAnimationFrame = callback => requestFrame(timestamp => {
-        const before = window.siteProbe.farmFrames.length, start = performance.now();
-        callback(timestamp);
-        if (window.siteProbe.farmBounds !== null && window.siteProbe.farmTimings.length < 4096)
-          window.siteProbe.farmTimings.push({timestamp,cpuMs:performance.now()-start,rendered:window.siteProbe.farmFrames.length>before});
-      });
+      window.siteProbe.nativeFrame=requestFrame;
+      window.requestAnimationFrame = callback => {
+        const queued=performance.now();
+        return requestFrame(timestamp => {
+          const before = window.siteProbe.farmFrames.length, start = performance.now();
+          callback(timestamp);
+          let gpuWaitMs=0;
+          if (${JSON.stringify(Boolean(process.env.DYNLEX_FARM_GPU_WAIT))} && window.siteProbe.sampling && window.siteProbe.gl) {
+            const beforeWait=performance.now();window.siteProbe.gl.finish();gpuWaitMs=performance.now()-beforeWait;
+          }
+          if (window.siteProbe.sampling && window.siteProbe.farmTimings.length < 4096)
+            window.siteProbe.farmTimings.push({timestamp,cpuMs:performance.now()-start,rendered:window.siteProbe.farmFrames.length>before,visible:window.siteProbe.farmBounds!==null,gpuWaitMs,glDraws:window.siteProbe.glDraws,queuedMs:start-queued});
+          window.siteProbe.glDraws=0;
+        });
+      };
     }
     const instantiate = WebAssembly.instantiate.bind(WebAssembly);
     WebAssembly.instantiate = function(bytes, imports, ...args) {
@@ -162,6 +176,7 @@ try {
           return vertexBuffer(surface,shader,pass,slot,pointer,count);
         };
         env.ui_shader_uniform=(surface,shader,pass,group,binding,scalar,rows,columns,pointer,count)=>{
+          if(${JSON.stringify(farmProfiling)} && pass===50 && binding===0) window.siteProbe.farmCamera=Array.from(new Float32Array(env.__linear_memory.buffer,pointer,count/4));
           if(pass===50 && binding===16)
             window.siteProbe.farmWeather.push(new DataView(env.__linear_memory.buffer,pointer,count).getFloat32(0,true));
           return uniform(surface,shader,pass,group,binding,scalar,rows,columns,pointer,count);
@@ -183,6 +198,7 @@ try {
               left=Math.min(left,vertices[index]);right=Math.max(right,vertices[index]);
               top=Math.min(top,vertices[index+1]);bottom=Math.max(bottom,vertices[index+1]);
             }
+            window.siteProbe.farmViewport={x:left,y:top,width:right-left,height:bottom-top};
             left=Math.max(left,x,0);right=Math.min(right,x+width,innerWidth);
             top=Math.max(top,y,0);bottom=Math.min(bottom,y+height,innerHeight);
             if(right>left && bottom>top) window.siteProbe.farmBounds={x:left,y:top,width:right-left,height:bottom-top};
@@ -256,6 +272,13 @@ try {
       const result = original.call(this, kind, ...args);
       if (kind === 'webgpu' || kind === 'webgl2') window.siteProbe.api = kind;
       if (kind === 'webgl2' && result) {
+        if (${JSON.stringify(farmProfiling)}) {
+          window.siteProbe.gl=result;
+          for(const operation of ['drawArrays','drawElements','drawArraysInstanced','drawElementsInstanced']) {
+            const draw=result[operation].bind(result);
+            result[operation]=(...args)=>{window.siteProbe.glDraws++;return draw(...args);};
+          }
+        }
         const clear = result.clear.bind(result);
         result.clear = bits => { window.siteProbe.paints++; clear(bits); };
       }
@@ -287,6 +310,19 @@ try {
   const {click,key,clickText,clickVisibleText}=controls;
   if (inspection) {
     await verifyRiverInspection({command,evaluate,waitFor,controls,capture});
+  } else if (process.env.DYNLEX_FARM_PROFILE_ONLY) {
+    await controls.clickText('Open the farm challenge →');
+    await controls.clickText('Whole farm');
+    await waitFor('window.siteProbe.farmBounds !== null');
+    await waitFor('!window.siteProbe.visible.includes("Preparing the Farm…")');
+    if(process.env.DYNLEX_FARM_TRACE) await command('Tracing.start',{categories:'devtools.timeline,cc,gpu,blink,benchmark',options:'record-as-much-as-possible'});
+    await profileFarmWalk({command,evaluate,waitFor,controls,capture});
+    if(process.env.DYNLEX_FARM_TRACE) {
+      await command('Tracing.end');
+      for(let attempt=0;attempt<300 && !traceComplete;attempt++) await pause(100);
+      assert(traceComplete,'Chrome did not finish the requested trace');
+      await fs.writeFile('.cache/farm-browser-trace.json',JSON.stringify({traceEvents}));
+    }
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
     await verifyFarmPage({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmRestore({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
