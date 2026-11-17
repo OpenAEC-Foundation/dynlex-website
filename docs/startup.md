@@ -59,6 +59,36 @@ Timing is an emulation on the test machine, not a measurement of a physical phon
 or the time its display scans out a GPU frame. Network and device limits still
 apply. The original cold first submission took 10,653.5 ms under this test.
 
+On 2026-11-17 the final application build produced cold first submissions of
+1,001.8 and 902.8 ms with empty storage, and 985.2 ms with the existing Farm-save fixture.
+Each sample used a new private browser profile with its HTTP cache disabled.
+Seven startup resources completed before the first submission, totaling 654,102
+compressed response bytes. The editor compiler was not requested. These results
+are around the one-second target; the slowest sample was 1.8 ms over it.
+
+Fixes include the bundled runtime's hidden import paths, duplicate document
+reflows, inactive-body measurement, selected-body activation before measurement,
+eager editor analysis, repeated shader requests, blank scene replacement during
+loading, and preview cache-clearing delays. Focus remains independent of rendering;
+input dispatch prepares layout after application observers and before processing
+geometry-dependent events, so newly revealed controls accept queued input.
+Compiler C++ behavior was unchanged in this work. Source workspaces, layout and
+font handling are shared library changes rather than website-specific copies.
+
+The measurements and build provenance are recorded in
+[`startup-measurements.json`](startup-measurements.json). The final CI artifact's
+1,058 files were compared by SHA-256 with the measured build; every file matched.
+Local validation passed all 258 native UI checks at O0/O2, browser font advance
+and raster-weight checks, the WebGL and WebGPU IDE flows, and the WebGL
+River and Farm interaction flows. Those game checks include lazy compiler startup, shared
+editor features, saved progress, execution controls and weather transitions.
+The complete standalone website suite passed in
+[CI run 44166891189](https://github.com/OpenAEC-Foundation/dynlex-website/actions/runs/44166891189),
+including controller/model fixtures compiled with the shipped browser compiler.
+Its runner keeps that compiler warm while verifying each completed fixture,
+and cancels the compiler if verification fails; compilation budgets and fixture
+assertions are unchanged.
+
 The deterministic delivery tests run against the actual generated nginx rules
 and Python preview handler. Tests require nginx, or `DYNLEX_NGINX` pointing to a
 standalone executable; no system service needs to be started.

@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-17",
+  "sourceRevision": "edfe1c2b3c418edd2b3f60599719a10008daa453",
+  "viewport": [
+    390,
+    844
+  ],
+  "deviceScaleFactor": 2,
+  "cpuThrottle": 4,
+  "downloadBitsPerSecond": 9000000,
+  "uploadBitsPerSecond": 2000000,
+  "latencyMs": 40,
+  "httpCache": false,
+  "graphics": "WebGL2 with SwiftShader",
+  "baselineFirstSubmissionMs": 10653.5,
+  "samples": [
+    {
+      "profile": "fresh1",
+      "firstSubmissionMs": 1001.8,
+      "navigationMs": 298.1,
+      "criticalEncodedBytes": 654102,
+      "criticalCompletedResources": 7,
+      "compilerRequested": false
+    },
+    {
+      "profile": "fresh2",
+      "firstSubmissionMs": 902.8,
+      "navigationMs": 428.7,
+      "criticalEncodedBytes": 654102,
+      "criticalCompletedResources": 7,
+      "compilerRequested": false
+    },
+    {
+      "profile": "saved",
+      "firstSubmissionMs": 985.2,
+      "navigationMs": 241,
+      "criticalEncodedBytes": 654102,
+      "criticalCompletedResources": 7,
+      "compilerRequested": false
+    }
+  ],
+  "measurement": "Navigation to first UI submission; not physical display scanout",
+  "artifactSha256": "40fcfe032e6f87a4a17524dae9c13c7552dbcbe0ab6b2c93d0afa0da3e74a9d4",
+  "equivalentVerifiedBuild": {
+    "sourceRevision": "5dc3ecf2b1c0910d107e68fd1765c2267c986ace",
+    "artifactSha256": "db69c5bc8895510846b04cb6dacfd6cc1e6ec3ae19c746680515b29f1cb6b125",
+    "identicalBuildFileCount": 1058
+  }
+}
