@@ -139,8 +139,8 @@ try {
       window.requestAnimationFrame = callback => requestFrame(timestamp => {
         const before = window.siteProbe.farmFrames.length, start = performance.now();
         callback(timestamp);
-        if (window.siteProbe.farmFrames.length > before && window.siteProbe.farmTimings.length < 4096)
-          window.siteProbe.farmTimings.push({timestamp,cpuMs:performance.now()-start});
+        if (window.siteProbe.farmBounds !== null && window.siteProbe.farmTimings.length < 4096)
+          window.siteProbe.farmTimings.push({timestamp,cpuMs:performance.now()-start,rendered:window.siteProbe.farmFrames.length>before});
       });
     }
     const instantiate = WebAssembly.instantiate.bind(WebAssembly);

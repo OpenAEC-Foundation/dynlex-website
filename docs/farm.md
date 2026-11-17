@@ -254,6 +254,8 @@ uploads, warms the shaders, waits for GPU completion and saves a screenshot. The
 measurements isolate costs; they do not claim a browser application's frame rate.
 For complete application frame timings during the existing gameplay checks, run
 `DYNLEX_FARM_PROFILE=1 DYNLEX_TEST_GRAPHICS=webgl DYNLEX_SITE_SCENARIO=farm ./scripts/test_web_browser.sh`.
+Add `DYNLEX_FARM_CPU_PROFILE=1` to save a Chrome CPU profile; its instrumented
+timings should be kept separate from ordinary frame measurements.
 The isolated GPU browser runs headless, muted and with a private profile. An explicitly selected
 `DYNLEX_PROJECT_COMPILER` can compile the CPU probes with a native executable.
 
@@ -268,3 +270,9 @@ changes. A 960×640 scene replay measured 9.3–9.4 ms before these updates and
 `atmosphere.dl` defines the shared blue backdrop, aerial haze, scene clear and UI background color. The distant
 backdrop is unlit so terrain lighting cannot tint it green; the reflection sky
 and material-lighting reference values retain their own definitions.
+
+A whole-application CPU profile also identified linear control-state lookup and
+repeated text measurement. The shared UI index keeps state addresses stable and
+reduces a 1,024-control lookup benchmark from 11.71 ms to 0.56 ms per 10,000 reads.
+The browser font service now caches immutable metrics within entry/text budgets.
+Both changes apply to other UI applications; the index also runs natively.

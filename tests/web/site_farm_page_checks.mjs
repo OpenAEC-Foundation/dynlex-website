@@ -72,7 +72,7 @@ export async function verifyFarmPage({ command, evaluate, waitFor, controls, cap
   await controls.clickText('Pause farm Ⅱ');
   await controls.clickText('Whole farm');
   await waitFor('window.siteProbe.farmBounds !== null');
-  if(process.env.DYNLEX_FARM_PROFILE) await profileFarmFrames({evaluate,controls});
+  if(process.env.DYNLEX_FARM_PROFILE) await profileFarmFrames({evaluate,controls,waitFor,command});
   const before = await evaluate('window.siteProbe.farmFrames.length');
   const point = await evaluate(`(() => {
     const box = window.siteProbe.farmBounds;
