@@ -48,7 +48,8 @@ def asset_base(value):
 def write_routes(site, stage, pages, base, fonts):
     template = (site / 'shell.html').read_text().replace('{{asset_root}}', html.escape(base, quote=True))
     preloads = [f'<link rel="preload" href="{html.escape(base, quote=True)}application.wasm" as="fetch" type="application/wasm" crossorigin>']
-    preloads += [f'<link rel="preload" href="{html.escape(base + font["source"], quote=True)}" as="font" type="font/woff2" crossorigin>' for font in fonts]
+    preloads += [f'<link rel="preload" href="{html.escape(base + source, quote=True)}" as="font" type="font/woff2" crossorigin>'
+                 for source in dict.fromkeys(font['source'] for font in fonts)]
     template = template.replace('{{preloads}}', '\n  '.join(preloads))
     for page in pages:
         route = page['path'].removeprefix('/')

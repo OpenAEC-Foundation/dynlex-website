@@ -3,7 +3,7 @@
   "dependencies": {
     "dynlex-ui": {
       "archive": "dependencies/dynlex-ui.zip",
-      "contentHash": "a8cc95b9dcb5957655fb3d419737f3000e2ce50c35f87b293fca48c2542a4716"
+      "contentHash": "67c27c4251ad495f1c97d8be52a7a40137921d73a3c865e8f0ca5fe06b504393"
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
@@ -13,19 +13,23 @@
   "fonts": [
     {
       "path": "assets/fonts/Inter-400.ttf",
-      "source": "assets/fonts/Inter-400.woff2"
+      "source": "assets/fonts/Inter-400-600.woff2",
+      "weight": 400
     },
     {
       "path": "assets/fonts/Inter-600.ttf",
-      "source": "assets/fonts/Inter-600.woff2"
+      "source": "assets/fonts/Inter-400-600.woff2",
+      "weight": 600
     },
     {
       "path": "assets/fonts/SpaceGrotesk-700.ttf",
-      "source": "assets/fonts/SpaceGrotesk-700.woff2"
+      "source": "assets/fonts/SpaceGrotesk-700.woff2",
+      "weight": 400
     },
     {
       "path": "assets/fonts/JetBrainsMono-400.ttf",
-      "source": "assets/fonts/JetBrainsMono-400.woff2"
+      "source": "assets/fonts/JetBrainsMono-400.woff2",
+      "weight": 400
     }
   ]
 }

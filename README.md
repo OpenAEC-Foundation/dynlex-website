@@ -60,6 +60,10 @@ Browser tests run muted in private Xvfb sessions. `DYNLEX_TEST_GRAPHICS` selects
 `general`, `farm`, `river-inspection` or `river`. Native cross-checks can use an
 installed compiler executable supplied through `DYNLEX_COMPILER`; normal builds
 and tests use the pinned browser compiler.
+Delivery verification additionally requires nginx (`DYNLEX_NGINX` may point to an
+uninstalled executable). Tests start it on a private local port, without changing
+the system service. [Startup measurements](docs/startup.md) document the cold
+mobile emulation and the loading sequence.
 
 ## Deployment
 
