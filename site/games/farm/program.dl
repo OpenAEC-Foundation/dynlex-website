@@ -1,4 +1,5 @@
 # The Farm's render graph is application data, shared by every platform host.
+import atmosphere.dl
 import ../../packages/dynlex-ui/ui/shader_graph.dl
 import ../../packages/dynlex-ui/ui/scene_draw_types.dl
 import ../../packages/dynlex-ui/ui/scene_buffer_layouts.dl
@@ -55,7 +56,8 @@ to get [the website Farm render graph using] {a pointer to JSON value:stages}:
     set JSON member (JSON child "pipelines" is (the UI scene shadow pipelines)) in pass
     add pass to the JSON array passes
     set pass to a website Farm pass with vertex (the JSON member named "surface-vertex" in stages) fragment (the JSON member named "surface-fragment" in stages) drawing meshes true
-    set color to a UI shader color attachment using (a UI shader image view of "scene_multisample" at level 0 layer 0) resolving into (a UI shader image view of "scene" at level 0 layer 0) loading "clear" storing "discard" cleared to [0.0,0.0,0.0,0.0]
+    set horizon to linear UI ink from (the website Farm horizon color)
+    set color to a UI shader color attachment using (a UI shader image view of "scene_multisample" at level 0 layer 0) resolving into (a UI shader image view of "scene" at level 0 layer 0) loading "clear" storing "discard" cleared to [horizon's red,horizon's green,horizon's blue,1.0]
     set JSON member (JSON child "color" is color) in pass
     set JSON member (JSON child "depth" is (a UI shader depth attachment using (a UI shader image view of "depth" at level 0 layer 0) loading "clear" storing "discard" cleared to 1.0)) in pass
     set JSON member (JSON child "pipelines" is (the UI scene color pipelines)) in pass

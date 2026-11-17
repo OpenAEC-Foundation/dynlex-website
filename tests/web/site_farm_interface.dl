@@ -21,6 +21,11 @@ set the value of "Farm speed" in context to 1
 require condition ((the selected choice of "Farm speed" in context) = "2×") reporting "The Farm pace selector lost its static data"
 
 require condition ((the control labeled "Farm scene" in context)'s kind = 20) reporting "The Farm world is not a programmable shared surface"
+set stage to the control labeled "Farm scene" in context
+set settings to default UI appearance settings
+apply UI appearance (stage's appearance) for 960.0 using (no UI palette) to (the address of settings)
+set color to settings's background
+require condition ((color's blue > color's green) and (color's green > color's red)) reporting "The Farm surface retained a green background behind its shader"
 require condition ((the control labeled "Farm source" in context)'s kind = 44) reporting "Farm roles did not use the shared source editor"
 require condition ((the control labeled "Farm person controls" in context)'s kind = 49) reporting "Worker and manual controls were not declared as retained alternatives"
 set actions to ["Draw area", "Cancel drawing", "Reshape area", "Rename area", "Delete area", "Deliver order", "Give this role to Ada", "Stop reading the role", "Remove role", "Do this", "Take supply", "Whole farm", "View selection"]

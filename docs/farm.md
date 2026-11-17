@@ -265,6 +265,6 @@ retains validated draws and generated primitive indices when only instance data
 changes. A 960×640 scene replay measured 9.3–9.4 ms before these updates and
 1.2–1.4 ms afterward on the same local software backend.
 
-`atmosphere.dl` defines the shared blue backdrop and aerial haze color. The distant
+`atmosphere.dl` defines the shared blue backdrop, aerial haze, scene clear and UI background color. The distant
 backdrop is unlit so terrain lighting cannot tint it green; the reflection sky
 and material-lighting reference values retain their own definitions.

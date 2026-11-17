@@ -48,6 +48,10 @@ write_routes(root/'site',output,json.loads((directory/'routes.json').read_text()
     }
     assert(resources>=2,`${filename} did not load its renderer and icon`);
   }
+  const farm=JSON.parse(await readFile(path.join(directory,'assets/games/farm/program.json'),'utf8'));
+  const farmClear=farm.passes.find(pass=>pass.color?.view?.image==='scene_multisample').color.clear;
+  assert.equal(farmClear[3],1,'The Farm horizon must cover pixels beyond the distant plane');
+  assert(farmClear[2]>farmClear[1]&&farmClear[1]>farmClear[0],'The Farm clear color must share its blue atmosphere');
   const application=JSON.parse(await readFile(path.join(directory,'application.json'),'utf8'));
   const scenes=JSON.parse(await readFile(path.join(directory,'assets/shaders/index.json'),'utf8'));
   assertNanoGeometry(scenes.find(scene=>scene.id==='nano-choreography'),directory,root);
