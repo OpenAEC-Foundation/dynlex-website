@@ -3,11 +3,29 @@
   "dependencies": {
     "dynlex-ui": {
       "archive": "dependencies/dynlex-ui.zip",
-      "contentHash": "b7d856fc4a2d7c6c79690201f884d5d918488e2c52bb8360f6c24de48832e38c"
+      "contentHash": "9b302363634c61e317fe338745469bc913ca34e88317210788bc38c1440c3627"
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
       "contentHash": "d923ad37bc059a85864056ce8af896fff8353b4d62be9a117eb579925277da4b"
     }
-  }
+  },
+  "fonts": [
+    {
+      "path": "assets/fonts/Inter-400.ttf",
+      "source": "assets/fonts/Inter-400.woff2"
+    },
+    {
+      "path": "assets/fonts/Inter-600.ttf",
+      "source": "assets/fonts/Inter-600.woff2"
+    },
+    {
+      "path": "assets/fonts/SpaceGrotesk-700.ttf",
+      "source": "assets/fonts/SpaceGrotesk-700.woff2"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-400.ttf",
+      "source": "assets/fonts/JetBrainsMono-400.woff2"
+    }
+  ]
 }

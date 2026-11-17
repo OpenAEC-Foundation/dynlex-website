@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: "22"
 
+      - run: npm ci
+
       - name: Build release
         run: |
           set -euo pipefail
@@ -101,6 +103,10 @@ jobs:
               listen [::]:443 ssl http2;
               server_name $site_hostname;
 
+              gzip on;
+              gzip_comp_level 6;
+              gzip_vary on;
+              gzip_types application/wasm application/javascript text/javascript application/json image/svg+xml;
               root $DEPLOY_PATH/current;
               index index.html;
 

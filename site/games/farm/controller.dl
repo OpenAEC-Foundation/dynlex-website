@@ -61,10 +61,6 @@ to [initialize the website Farm in] {a pointer to website state:state}:
     set the "Give this role to Ada" control in instance enabled false
     for each label in ["Farm view notices", "Farm preparation notices", "Farm preparation retry", "Farm vocabulary panel"]:
         set the value of label in instance to -1
-    set the text of "Farm action examples" in instance to (the website Farm action guide)
-    set the text of "Farm condition examples" in instance to (the website Farm condition guide)
-    set the text of "Farm destination examples" in instance to (the website Farm destination guide)
-    set the text of "Farm supply examples" in instance to (the website Farm supply guide)
     set the "Retry Farm view" control in instance enabled false
     set the "Retry saved roles" control in instance enabled false
     bind (the control labeled "Farm source" in instance) in instance to (the function named "notice website Farm source edit $") for event 0

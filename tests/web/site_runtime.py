@@ -23,7 +23,7 @@ def main():
     parser.add_argument('--compiler', type=Path, default=None)
     parser.add_argument('--frontend', choices=['all', 'native', 'shipped'], default='shipped',
                         help='Select a compiler frontend for preflight checks (default: both).')
-    cases = ['site_controllers', 'site_language', 'site_entry', 'site_shader', 'site_shader_buffers', 'site_program_events', 'site_river_controller', 'site_river_audio', 'site_progress_controller', 'site_account_profiles', 'site_account_controller', 'site_account_recovery', 'site_reply_ownership']
+    cases = ['site_controllers', 'site_language', 'site_entry', 'site_shader', 'site_shader_loading', 'site_shader_buffers', 'site_program_events', 'site_river_controller', 'site_river_audio', 'site_progress_controller', 'site_account_profiles', 'site_account_controller', 'site_account_recovery', 'site_reply_ownership']
     cases.append('site_program_commands')
     cases.append('site_program_deadlines')
     cases.append('site_startup')

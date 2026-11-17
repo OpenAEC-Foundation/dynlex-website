@@ -26,12 +26,11 @@ to get receive website reply {a pointer to JSON value:response} for {integer:job
             require condition ((the JSON text named "id" in entry) = description's id) reporting "The shader catalog order is inconsistent"
             set scene's geometry to description's geometry
             set scene's program to a copy of JSON-RPC node (the JSON member named "program" in entry)
-            set payload to the compact JSON form of (scene's program)
-            request "graphics" with JSON data payload for purpose 4 indexed cursor in state
             increment cursor
         free catalog
     if job = 4:
         set resource to ((the JSON number named "resource" in response) as an integer) as a pointer
+        set (state's shaders + index)'s loading to false
         set (state's shaders + index)'s resource to resource
         initialize loaded website shader data in (state's shaders + index) using (state's view)
         request a UI redraw in (state's view)
@@ -114,6 +113,9 @@ to read website input {a pointer to UI view:view}:
                 set retained to receive website reply document for (pending's purpose) indexed (pending's index) in state
             else:
                 set view's instance's status to "An error occurred. Check the log."
+                if pending's purpose = 4:
+                    set (state's shaders + pending's index)'s loading to false
+                    set (state's shaders + pending's index)'s failed to true
                 if pending's purpose = 5:
                     set state's release loading to false
                     set the text of "Release status" in (view's instance) to "An error occurred. Check the log."

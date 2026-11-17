@@ -1,0 +1,22 @@
+import ../../site/shaders/hero.dl
+import site_fixture.dl
+
+set instance to an instance of website fixture
+set view to a new UI view
+set view's instance to the address of instance
+set state to a new website state
+set state's view to the address of view
+set state's services to the browser UI service provider
+set instance's state to (the address of state) as a pointer
+set program to a JSON object containing [JSON text "operation" is "shader"]
+set (state's shaders + 0)'s program to program
+prepare website shader 0 in (the address of state)
+prepare website shader 0 in (the address of state)
+require condition ((state's requests' purpose = 4) and (state's requests' next = (0 as a pointer to website request))) reporting "Shader preparation registered duplicate in-flight work"
+require condition ((state's shaders + 0)'s loading) reporting "Requested shader preparation has no owner"
+require condition ((state's shaders + 1)'s loading = false) reporting "Preparing one scene started another scene"
+set pending to state's requests
+deallocate pending
+free program
+close the address of instance
+print line "Visible shader preparation owns one request without starting unrelated scenes."

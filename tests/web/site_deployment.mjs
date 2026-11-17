@@ -30,7 +30,7 @@ root,directory,output=map(Path,sys.argv[1:4])
 base=sys.argv[4]
 sys.path.insert(0,str(root/'scripts'))
 from build_site import write_routes,asset_base
-write_routes(root/'site',output,json.loads((directory/'routes.json').read_text()),asset_base(base))
+write_routes(root/'site',output,json.loads((directory/'routes.json').read_text()),asset_base(base),json.loads((root/'site/project.json').read_text())['fonts'])
 `,root,directory,temporary,base],{encoding:'utf8'});
   assert.equal(generated.status,0,generated.stderr);
   for(const page of pages) {
@@ -55,7 +55,7 @@ write_routes(root/'site',output,json.loads((directory/'routes.json').read_text()
   const application=JSON.parse(await readFile(path.join(directory,'application.json'),'utf8'));
   const scenes=JSON.parse(await readFile(path.join(directory,'assets/shaders/index.json'),'utf8'));
   assertNanoGeometry(scenes.find(scene=>scene.id==='nano-choreography'),directory,root);
-  for(const file of [application.module,...application.fonts,'compiler/dynlex_web.js',
+  for(const file of [application.module,...application.fonts.flatMap(font=>[font.path,font.source]),'compiler/dynlex_web.js',
     'compiler/dynlex_web.wasm','compiler/dynlex_wgsl_translator.wasm',
     'platform/start.js','packages/dynlex-ui/platform/browser/application.js',
     'assets/games/river/wolf-mouth-guide.svg']) {

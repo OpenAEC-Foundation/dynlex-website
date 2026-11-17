@@ -46,11 +46,13 @@ class SiteRoutes(unittest.TestCase):
         for base in ['/', '/releases/' + 'a' * 40 + '/', '/preview/build-7/']:
             with self.subTest(base=base), tempfile.TemporaryDirectory() as directory:
                 stage = Path(directory)
-                write_routes(ROOT / 'site', stage, pages, asset_base(base))
+                write_routes(ROOT / 'site', stage, pages, asset_base(base), [{'path':'font.ttf','source':'font.woff2'}])
                 for page in pages:
                     source = (stage / page['path'].removeprefix('/')).read_text()
                     self.assertIn(f'src="{base}platform/start.js"', source)
                     self.assertIn(f'href="{base}assets/branding/dynlex-icon.svg"', source)
+                    self.assertIn(f'href="{base}application.wasm"', source)
+                    self.assertIn(f'href="{base}font.woff2"', source)
                     self.assertNotIn('{{', source)
                 source = (stage / 'index.html').read_text()
                 self.assertIn('<title>DynLex &lt;home&gt;</title>', source)

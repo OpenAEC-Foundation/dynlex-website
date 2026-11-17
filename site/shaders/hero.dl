@@ -30,6 +30,12 @@ to paint the website shader {a pointer to UI canvas frame:painting}:
             draw UI texture texture in (painting's bounds) in (UI ink 255 255 255) with opacity ((255.0 * weight / coverage) as an integer) on (painting's frame)
         increment index
 
+to [prepare website shader] {integer:index} [in] {a pointer to website state:state}:
+    set scene to state's shaders + index
+    if (((scene's resource = (0 as a pointer)) and (scene's loading = false)) and (scene's failed = false)) and (scene's program != (0 as a pointer to JSON value)):
+        set scene's loading to true
+        request "graphics" containing (a copy of JSON node (scene's program)) for purpose 4 indexed index in state
+
 to advance the website frame {a pointer to UI view:view}:
     set state to the website state in (view's instance)
     advance website language analysis in state
@@ -39,7 +45,9 @@ to advance the website frame {a pointer to UI view:view}:
     set visible to false
     if state's route = "/index.html":
         set canvas to the UI layout labeled "Live shader" in (view's layout)
-        set visible to ((canvas's painted bounds' y + canvas's painted bounds' height) > 0.0) and (canvas's painted bounds' y < view's height)
+        set visible to (canvas's paint generation = view's paint count) and ((canvas's hit bounds' width > 0.0) and (canvas's hit bounds' height > 0.0))
+    if visible:
+        prepare website shader (state's shader index) in state
     set index to 0
     loop while index < the length of (the site's shaders):
         advance website shader (state's shaders + index) visible (visible and (index = state's shader index)) in view
@@ -51,5 +59,8 @@ to advance the website frame {a pointer to UI view:view}:
     if visible and (view's instance's reduced motion = false):
         set selected to state's shaders + state's shader index
         set description to the item at (state's shader index) in (the site's shaders)
-        if selected's seconds > description's duration:
+        set next to (state's shader index + 1) mod (the length of (the site's shaders))
+        if selected's seconds > (description's duration - 3):
+            prepare website shader next in state
+        if (selected's seconds > description's duration) and ((state's shaders + next)'s resource != (0 as a pointer)):
             advance to the next website shader in state

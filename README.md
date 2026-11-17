@@ -7,10 +7,11 @@ The compiler and platform runtime come from [dynlex](https://github.com/OpenAEC-
 
 ## Build and preview
 
-Install Python 3.10+ and Node.js 22+. No compiler checkout, C++ build, npm install,
-or sibling repository is needed.
+Install Python 3.10+ and Node.js 22+. No compiler checkout, C++ build or sibling
+repository is needed. The build uses the pinned esbuild development dependency.
 
 ```bash
+npm ci
 python3 scripts/build_site.py
 ./scripts/view_web.sh 7000
 ```

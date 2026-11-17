@@ -45,8 +45,11 @@ def asset_base(value):
     return value
 
 
-def write_routes(site, stage, pages, base):
+def write_routes(site, stage, pages, base, fonts):
     template = (site / 'shell.html').read_text().replace('{{asset_root}}', html.escape(base, quote=True))
+    preloads = [f'<link rel="preload" href="{html.escape(base, quote=True)}application.wasm" as="fetch" type="application/wasm" crossorigin>']
+    preloads += [f'<link rel="preload" href="{html.escape(base + font["source"], quote=True)}" as="font" type="font/woff2" crossorigin>' for font in fonts]
+    template = template.replace('{{preloads}}', '\n  '.join(preloads))
     for page in pages:
         route = page['path'].removeprefix('/')
         target = stage / route
@@ -147,7 +150,7 @@ def main():
         for path in sorted({compiler / 'runtimeImports.js', *compiler.glob('runtime*.js')}):
             shutil.copy2(path, stage / 'compiler' / path.name)
         shutil.copy2(compiler_root / 'web/wgsl-translator.js', stage / 'compiler/wgsl-translator.js')
-        write_routes(site, stage, pages, args.base)
+        write_routes(site, stage, pages, args.base, project["fonts"])
         (stage / 'assets/shaders/index.json').write_text(json.dumps(scenes) + '\n')
         dependencies = sdk.source_files('packages/dynlex-ui')
         dependencies.update({p.relative_to(root).as_posix(): p.read_text() for p in (site / 'language').glob('*.dl')})
@@ -155,10 +158,9 @@ def main():
         shutil.copy2(compiler_root / 'scripts/install_release.sh', stage / 'install.sh')
         (stage / 'install.sh').chmod(0o755)
         shutil.copytree(compiler_root / 'resources/branding', stage / 'assets/branding', dirs_exist_ok=True)
-        fonts = sorted(path.relative_to(stage).as_posix() for path in (stage / 'assets/fonts').glob('*.ttf'))
-        fonts += sorted(path.relative_to(stage).as_posix() for path in (stage / 'packages/dynlex-ui/assets/fonts').glob('*.ttf'))
-        (stage / 'application.json').write_text(json.dumps({'module': 'application.wasm', 'fonts': fonts}, indent=2) + '\n')
+        (stage / 'application.json').write_text(json.dumps({'module': 'application.wasm', 'fonts': project['fonts']}, indent=2) + '\n')
         copy_public_files(site, stage)
+        subprocess.run(['node', str(root / 'scripts/prepare_delivery.mjs'), str(stage)], check=True)
         if output.exists():
             shutil.rmtree(output)
         output.parent.mkdir(parents=True, exist_ok=True)

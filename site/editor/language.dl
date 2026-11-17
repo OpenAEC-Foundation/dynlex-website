@@ -42,7 +42,7 @@ to [receive website language reply] {a pointer to JSON value:response} [at step]
 to [advance website language analysis in] {a pointer to website state:state}:
     set view to state's view
     update UI source tools in (state's language)
-    set work to the next UI source workspace work in (state's language) focused on (the UI source focus in view for (state's language)) at (view's seconds) seconds
+    set work to the next visible UI source work in (state's language) in view at (view's seconds) seconds
     send website language work work in state
     present website source colors in state
     if UI source workspace (state's language) awaits an edit deadline at (view's seconds) seconds:

@@ -53,6 +53,11 @@ to [choose website Farm person] {string:id} [in] {a pointer to website state:sta
 to [open website Farm document in] {a pointer to website state:state}:
     set session to the address of (state's farm)
     if session's document = (0 as a pointer to website farm document):
+        set instance to state's view's instance
+        set the text of "Farm action examples" in instance to (the website Farm action guide)
+        set the text of "Farm condition examples" in instance to (the website Farm condition guide)
+        set the text of "Farm destination examples" in instance to (the website Farm destination guide)
+        set the text of "Farm supply examples" in instance to (the website Farm supply guide)
         set session's document to the saved website Farm document in state
         show website Farm role (session's document's role id) in state
         set actor to the website farm actor identified by (session's document's selected) in (session's document's world)

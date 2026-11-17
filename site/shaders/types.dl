@@ -7,6 +7,8 @@ class:
         website shader view
     members:
         resource as a pointer
+        loading as a boolean
+        failed as a boolean
         geometry as shader geometry
         program as a pointer to JSON value
         seconds as a floating-point number

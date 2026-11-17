@@ -18,6 +18,9 @@ set the text of "IDE source" in window to source
 open website source editors in (the address of state)
 set language to state's language's client
 advance website language analysis in (the address of state)
+require condition (language's phase = 0) reporting "An offscreen editor started the language service"
+set view's text focus to the control labeled "IDE source" in window
+advance website language analysis in (the address of state)
 require condition (language's phase = 1) reporting "Language analysis did not install the source project"
 set response to a new JSON-RPC null
 receive website language reply response at step 1 in (the address of state)
@@ -108,6 +111,7 @@ set state's shader editor's description to the custom website shader
 show page "/ide/index.html" in window
 set the value of "IDE modes" in window to 1
 set the value of "IDE result" in window to 1
+set view's text focus to the control labeled "Shader source" in window
 advance website language analysis in (the address of state)
 require condition (language's phase = 11) reporting "Changing targets did not reset the language session"
 set response to a new JSON-RPC null
