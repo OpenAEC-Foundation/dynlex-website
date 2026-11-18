@@ -1,6 +1,6 @@
 import ../state.dl
-import ../editor/language.dl
-import ../editor/shader.dl
+import ../packages/dynlex-ide/studio/language.dl
+import ../packages/dynlex-ide/studio/shader.dl
 import rendering.dl
 import ../games/river/controller.dl
 import ../games/farm/controller.dl

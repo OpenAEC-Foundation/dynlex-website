@@ -1,4 +1,5 @@
-import ../../site/programs/controller.dl
+import ../../site/programs/resources.dl
+import ../../site/packages/dynlex-ide/studio/programs.dl
 import site_fixture.dl
 
 to wake recorded website view {a pointer to UI view:view}:

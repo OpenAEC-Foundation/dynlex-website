@@ -1,4 +1,4 @@
-import ../../site/programs/controller.dl
+import ../../site/packages/dynlex-ide/studio/programs.dl
 import site_fixture.dl
 
 to [start deadline test execution] {integer:index} [in] {a pointer to website state:state}:

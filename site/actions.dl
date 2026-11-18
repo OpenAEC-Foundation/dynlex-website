@@ -1,7 +1,8 @@
+import packages/dynlex-ide/studio/actions.dl
 import navigation.dl
 import shaders/hero.dl
-import programs/controller.dl
-import editor/language.dl
+import packages/dynlex-ide/studio/programs.dl
+import packages/dynlex-ide/studio/language.dl
 import games/river/controller.dl
 import games/farm/controller.dl
 import account/controller.dl
@@ -9,8 +10,7 @@ import account/controller.dl
 to follow website link {a pointer to UI instance:instance}:
     set state to the website state in instance
     set destination to (the UI value for (instance's event target) in instance)'s destination
-    if destination = "action:toggle-ide-theme":
-        toggle website editor theme in state
+    if follow Studio action destination in state:
         return nothing
     if follow website account action destination in state:
         return nothing
@@ -28,12 +28,6 @@ to follow website link {a pointer to UI instance:instance}:
     if destination = "action:next-shader":
         advance to the next website shader in state
         return nothing
-    if destination = "action:toggle-preview":
-        toggle the website shader preview in state
-        return nothing
-    if destination = "action:reset-preview":
-        reset the website shader preview in state
-        return nothing
     set descriptions to the website program descriptions
     set index to 0
     loop while index < the length of descriptions:
@@ -45,11 +39,6 @@ to follow website link {a pointer to UI instance:instance}:
             stop website program index in state
             return nothing
         increment index
-    if destination = "action:save-source":
-        set source to the website source text in state
-        set name to the website source filename in state
-        request "download" containing (a JSON object containing [JSON text "name" is name, JSON text "type" is "text/plain;charset=utf-8", JSON text "content" is source]) for purpose 0 indexed 0 in state
-        return nothing
     if destination = "action:open-example":
         select website editor mode 0 in state
         set parent to the parent of (instance's event target) within (instance's description)
@@ -67,16 +56,6 @@ to follow website link {a pointer to UI instance:instance}:
             return nothing
         require condition false reporting "This website action has not been registered"
     navigate to destination in state
-
-to notice website editor mode {a pointer to UI instance:instance}:
-    set state to the website state in instance
-    set selected to the value of "IDE modes" in instance
-    select website editor mode selected in state
-    if selected = 1:
-        if state's shader editor's preview's resource = (0 as a pointer):
-            run website program 2 in state
-        else:
-            toggle the website shader preview in state
 
 to bind website links in {UI reference:node} for {a pointer to UI instance:instance}:
     if node's kind = 43:

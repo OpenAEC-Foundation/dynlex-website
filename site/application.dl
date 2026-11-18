@@ -1,3 +1,4 @@
+import programs/resources.dl
 import interface.dl
 import actions.dl
 import programs/commands.dl
@@ -215,10 +216,7 @@ function open the DynLex website using {a pointer to UI driver:driver} with {a p
         bind (the control labeled "Farm scene" in instance) in instance to (the function named "paint the website Farm $") for event 1
         bind website links in (instance's description) for instance
         bind website program commands in state
-        bind (the control labeled "IDE source" in instance) in instance to (the function named "notice website source edit $") for event 0
-        bind (the control labeled "Shader source" in instance) in instance to (the function named "notice website source edit $") for event 0
-        bind (the control labeled "IDE modes" in instance) in instance to (the function named "notice website editor mode $") for event 0
-        bind (the control labeled "IDE shader preview" in instance) in instance to (the function named "paint the website shader preview $") for event 1
+        bind Studio controls in instance
         bind (the control labeled "Live shader" in instance) in instance to (the function named "paint the website shader $") for event 1
         watch UI input in view using (the function named "read website input $")
         update UI frames in view using (the function named "advance the website frame $")

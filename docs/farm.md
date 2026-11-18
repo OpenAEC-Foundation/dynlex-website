@@ -102,7 +102,7 @@ actions advance these goals; manual farmer actions do not. Repeating the same
 bed does not increase the distinct-bed goals. Progress is saved.
 
 All editable code on the site uses the shared DynLex UI source workspace,
-connected by `site/editor/language.dl`. Tab accepts a suggestion; Enter inserts
+connected by `site/games/editors.dl`. Tab accepts a suggestion; Enter inserts
 a newline and indents one level after a section-opening colon. Ordinary
 statements keep the current indentation; colons inside comments and strings do
 not open a section. Existing semantic colors remain while newer analysis is pending.

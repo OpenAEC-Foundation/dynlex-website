@@ -11,7 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from dependencies import dependency, unpack
+from dependencies import dependency, unpack, site_sources
 
 
 def run(*command, **options):
@@ -32,8 +32,7 @@ def main():
     unpack('dynlex-web')
     sdk = dependency('dynlex-ui')
     sdk.extract(output / 'packages/dynlex-ui')
-    sources = {p.relative_to(ROOT).as_posix(): p.read_text() for p in (ROOT / 'site').rglob('*.dl')}
-    sources.update(sdk.source_files('site/packages/dynlex-ui'))
+    sources = site_sources()
     names = ['navigation', 'save', 'scene']
     jobs = []
     for name in names:

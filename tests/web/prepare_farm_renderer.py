@@ -11,7 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from source_package import SourcePackage
+from dependencies import dependency, site_sources
 
 
 def main():
@@ -21,11 +21,9 @@ def main():
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    package = SourcePackage(ROOT / 'site/dependencies/dynlex-ui.zip')
+    package = dependency('dynlex-ui')
     package.extract(output / 'packages/dynlex-ui')
-    sources = {path.relative_to(ROOT).as_posix(): path.read_text()
-               for path in (ROOT / 'site').rglob('*.dl')}
-    sources.update(package.source_files('site/packages/dynlex-ui'))
+    sources = site_sources()
     jobs = [
         {'entry': 'site/games/farm/shaders/environment.dl', 'kind': 'shader', 'stage': 'fragment', 'output': 'environment'},
         {'entry': 'tests/web/farm_lighting_query.dl', 'kind': 'shader', 'stage': 'fragment', 'output': 'query'},

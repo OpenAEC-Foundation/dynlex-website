@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 from urllib.parse import unquote, urlsplit
 
-from dependencies import dependency, unpack
+from dependencies import dependency, unpack, site_sources
 
 
 def compile_jobs(root, sources, jobs, stage):
@@ -83,8 +83,7 @@ def main():
     project = json.loads((site / 'project.json').read_text())
     sdk = dependency('dynlex-ui')
     compiler_root = unpack('dynlex-web')
-    sources = {path.relative_to(root).as_posix(): path.read_text() for path in site.rglob('*.dl')}
-    sources.update(sdk.source_files('site/packages/dynlex-ui'))
+    sources = site_sources()
     (root / 'build').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='dynlex-site-build-', dir=root / 'build') as temporary:
         stage = Path(temporary)
@@ -154,6 +153,10 @@ def main():
         write_routes(site, stage, pages, args.base, project["fonts"])
         (stage / 'assets/shaders/index.json').write_text(json.dumps(scenes) + '\n')
         dependencies = sdk.source_files('packages/dynlex-ui')
+        editor = dependency('dynlex-ide')
+        dependencies.update({name: data for name, data in editor.source_files('packages/dynlex-ide').items()
+                             if name.startswith('packages/dynlex-ide/editor/')})
+        editor.extract(stage / 'packages/dynlex-ide')
         dependencies.update({p.relative_to(root).as_posix(): p.read_text() for p in (site / 'language').glob('*.dl')})
         (stage / 'sdk-sources.json').write_text(json.dumps(dependencies) + '\n')
         shutil.copy2(compiler_root / 'scripts/install_release.sh', stage / 'install.sh')

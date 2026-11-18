@@ -1,4 +1,4 @@
-import ../../site/programs/controller.dl
+import ../../site/packages/dynlex-ide/studio/programs.dl
 import site_fixture.dl
 
 set begun, ended and result to 0

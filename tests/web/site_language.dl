@@ -1,4 +1,4 @@
-import ../../site/editor/language.dl
+import ../../site/packages/dynlex-ide/studio/language.dl
 import site_fixture.dl
 import ../../site/packages/dynlex-ui/ui/document_layout.dl
 

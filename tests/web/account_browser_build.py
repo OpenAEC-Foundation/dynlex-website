@@ -8,7 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from build_site import compile_jobs
-from source_package import SourcePackage
+from dependencies import site_sources
 
 base = Path(sys.argv[1]).resolve()
 destination = Path(sys.argv[2]).resolve()
@@ -18,9 +18,7 @@ if destination.exists():
     shutil.rmtree(destination)
 shutil.copytree(base, destination)
 project = json.loads((ROOT / 'site/project.json').read_text())
-sdk = SourcePackage(ROOT / 'site' / project['dependencies']['dynlex-ui']['archive'])
-sources = {path.relative_to(ROOT).as_posix(): path.read_text() for path in (ROOT / 'site').rglob('*.dl')}
-sources.update(sdk.source_files('site/packages/dynlex-ui'))
+sources = site_sources()
 sources['site/account/configuration.dl'] = '''import lib/json_builders.dl
 to get the website account configuration:
     return a JSON object containing [JSON text "apiKey" is "demo-key", JSON text "projectId" is "demo-dynlex-games", JSON text "authDomain" is "demo-dynlex-games.firebaseapp.com", JSON text "appId" is "demo-app"]

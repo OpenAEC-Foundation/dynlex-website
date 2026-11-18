@@ -1,4 +1,4 @@
-import ../../programs/controller.dl
+import ../../packages/dynlex-ide/studio/programs.dl
 import assets.dl
 import annotations.dl
 import audio_policy.dl

@@ -1,0 +1,18 @@
+import ../packages/dynlex-ide/studio/configuration.dl
+
+to configure website game editors in {a pointer to website state:state}:
+    set instance to state's view's instance
+    set description to the item at (the website program for source "River source") in (the website program descriptions)
+    configure the website source editor "River source" named (the string form of (description's filename)) prefixed by (the string form of (description's prefix)) using UI CPU analysis in state
+    set river to the UI source editor labeled "River source" in (state's language)
+    set river's diagnostics to the control labeled "River analysis diagnostics" in instance
+    set river's status to the control labeled "River analysis" in instance
+    set river's clean text to ""
+    set river's ready text to "Plan checked"
+    set description to the item at (the website program for source "Farm source") in (the website program descriptions)
+    configure the website source editor "Farm source" named (the string form of (description's filename)) prefixed by (the string form of (description's prefix)) using UI CPU analysis in state
+    set farm to the UI source editor labeled "Farm source" in (state's language)
+    set farm's diagnostics to the control labeled "Farm analysis diagnostics" in instance
+    set farm's status to the control labeled "Farm analysis" in instance
+    set farm's clean text to ""
+    set farm's ready text to "Role checked"

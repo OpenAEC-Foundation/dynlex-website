@@ -15,7 +15,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from source_package import SourcePackage
+from dependencies import dependency
 
 
 def compilation_budget(name):
@@ -132,14 +132,14 @@ def main():
     selected = args.case or cases + models
     native_cases = selected if args.frontend in ['all', 'native'] else []
     shipped_cases = selected if args.frontend in ['all', 'shipped'] else []
-    package = SourcePackage(ROOT / 'site/dependencies/dynlex-ui.zip')
     with tempfile.TemporaryDirectory(prefix='dynlex-site-test-') as directory:
         project = Path(directory)
         for source in (ROOT / 'site').rglob('*.dl'):
             target = project / source.relative_to(ROOT)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
-        package.extract(project / 'site/packages/dynlex-ui')
+        for name in ('dynlex-ui', 'dynlex-ide'):
+            dependency(name).extract(project / 'site/packages' / name)
         fixture = project / 'tests/web/site_fixture.dl'
         fixture.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'tests/web/site_fixture.dl', fixture)

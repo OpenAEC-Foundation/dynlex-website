@@ -1,4 +1,4 @@
-import ../../site/editor/entry.dl
+import ../../site/packages/dynlex-ide/studio/entry.dl
 import site_fixture.dl
 
 set instance to an instance of website fixture

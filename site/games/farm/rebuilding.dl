@@ -1,6 +1,6 @@
 import session.dl
 import clock.dl
-import ../../programs/controller.dl
+import ../../packages/dynlex-ide/studio/programs.dl
 
 # Saved plans are updated through the same compiler service as an explicit Run.
 # They use applied source, independently of the selected or edited draft.

@@ -1,7 +1,7 @@
 import downloads/controller.dl
-import editor/entry.dl
+import packages/dynlex-ide/studio/entry.dl
 import games/farm/controller.dl
-import editor/theme.dl
+import packages/dynlex-ide/studio/theme.dl
 import games/river/inspection/controller.dl
 
 # Resolve anchors from retained layout coordinates, including their parent regions.

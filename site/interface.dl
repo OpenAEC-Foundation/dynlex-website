@@ -1,7 +1,7 @@
 import pages/home.dl
 import pages/download.dl
 import pages/documentation.dl
-import pages/ide.dl
+import packages/dynlex-ide/studio/page.dl
 import pages/river_characters.dl
 import pages/not_found.dl
 

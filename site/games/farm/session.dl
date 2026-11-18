@@ -1,3 +1,4 @@
+import ../../packages/dynlex-ide/studio/configuration.dl
 import control_presentation.dl
 import ../progress/controller.dl
 

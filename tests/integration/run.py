@@ -8,12 +8,12 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from dependencies import dependency, unpack
+from dependencies import unpack, site_sources
 
 unpack('dynlex-web')
-sources = {p.relative_to(ROOT).as_posix():p.read_text()
-           for folder in ['site', 'tests/integration'] for p in (ROOT / folder).rglob('*.dl')}
-sources.update(dependency('dynlex-ui').source_files('site/packages/dynlex-ui'))
+sources = site_sources()
+sources.update({p.relative_to(ROOT).as_posix(): p.read_text()
+                for p in (ROOT / 'tests/integration').rglob('*.dl')})
 fixtures = sorted((ROOT / 'tests/integration').glob('*/main.dl'))
 with tempfile.TemporaryDirectory(prefix='dynlex-website-integration-') as directory:
     stage = Path(directory)

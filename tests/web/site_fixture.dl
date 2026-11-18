@@ -1,8 +1,8 @@
 # Controller tests use the production editor/program declarations without loading
 # unrelated documentation pages. Application composition stays in application.dl.
 import ../../site/pages/home.dl
-import ../../site/pages/ide.dl
-import ../../site/editor/language.dl
+import ../../site/packages/dynlex-ide/studio/page.dl
+import ../../site/packages/dynlex-ide/studio/language.dl
 
 document website fixture:
     code:

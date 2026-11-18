@@ -15,6 +15,14 @@ def dependency(name):
     return package
 
 
+def site_sources():
+    sources = {path.relative_to(ROOT).as_posix(): path.read_text()
+               for path in (ROOT / 'site').rglob('*.dl')}
+    for name in ('dynlex-ui', 'dynlex-ide'):
+        sources.update(dependency(name).source_files(f'site/packages/{name}'))
+    return sources
+
+
 def unpack(name):
     package = dependency(name)
     directory = ROOT / '.cache/packages' / name / package.manifest['contentHash']

@@ -1,6 +1,6 @@
 # These page sections belong to this application, not to the compiler.
 import packages/dynlex-ui/ui/document_declarations.dl
-import packages/dynlex-ui/ui/source_panes.dl
+import packages/dynlex-ide/editor/source_panes.dl
 
 class:
     patterns:

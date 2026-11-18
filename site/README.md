@@ -105,10 +105,10 @@ python3 tests/web/site_runtime.py --case site_river_inspection_interface
 DYNLEX_SITE_SCENARIO=river-inspection node tests/web/site_browser.mjs build/site webgpu
 ```
 
-Source editors use `dynlex-ui/ui/source_tools.dl`. Its workspace discovers
+Source editors use `dynlex-ide/editor/source_tools.dl`. Its workspace discovers
 source controls, retains one document model per control, synchronizes UI and
 programmatic edits, and schedules active editors through one language connection.
-`editor/language.dl` supplies website project metadata and transports the shared
+`packages/dynlex-ide/studio/language.dl` supplies website project metadata and transports the shared
 client's work to the compiler service. It contains no tokenizer or diagnostic
 coordinate conversion. Studio, River and the homepage sketches use this path.
 Completion requests, suggestion selection, text edits, continuation commands and

@@ -3,6 +3,7 @@
 The source for [dynlex.com](https://dynlex.com). Pages, editor behavior, games,
 models, shaders and UI declarations are written in DynLex. The shared renderer
 and controls come from [dynlex-ui](https://github.com/OpenAEC-Foundation/dynlex-ui).
+The Studio page and reusable code editor come from [dynlex-ide](https://github.com/OpenAEC-Foundation/dynlex-ide).
 The compiler and platform runtime come from [dynlex](https://github.com/OpenAEC-Foundation/dynlex).
 
 ## Build and preview
@@ -31,13 +32,13 @@ published into `build/site`.
 
 ## Dependencies
 
-`site/project.json` pins content-addressed compiler and UI archives in
+`site/project.json` pins content-addressed compiler, UI and IDE archives in
 `site/dependencies/`. Each archive is validated against its file hashes before
 extraction. The build tools, standard library, runtime, installer and logo come
 from the compiler package. Farm and River vocabulary belongs to this repository
 under `site/language/` and is explicitly supplied to the embedded editor.
 
-To update either dependency, export a package from its owning repository and run:
+To update a dependency, export a package from its owning repository and run:
 
 ```bash
 python3 scripts/update_dependency.py /absolute/path/to/exported-package.zip
@@ -45,7 +46,7 @@ python3 scripts/build_site.py
 ```
 
 The compiler exports with `scripts/package_web_compiler.py --output PATH`;
-dynlex-ui exports with its `scripts/export_sdk.py` command. Updating the lock is
+dynlex-ui and dynlex-ide export with their `scripts/export_sdk.py` commands. Updating the lock is
 explicit; production builds never read a sibling checkout.
 
 ## Verification
