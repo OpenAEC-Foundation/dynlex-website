@@ -17,11 +17,15 @@ export async function verifySourceNavigationAppearance({waitFor,disabled}) {
 }
 
 export async function verifySourceCallColor({waitFor,text,depth=0,theme='dark'}) {
-  const channels=callColors[depth][theme].match(/../g).map(channel=>{
+  return verifySourceInk({waitFor,text,color:callColors[depth][theme]});
+}
+
+async function verifySourceInk({waitFor,text,color,occurrences=1}) {
+  const channels=color.match(/../g).map(channel=>{
     const value=parseInt(channel,16)/255;
     return value<=0.04045?value/12.92:Math.pow((value+0.055)/1.055,2.4);
   });
-  await waitFor(`window.colorProbe.some(item=>item.text.trim()===${JSON.stringify(text)} && item.ink.every((value,index)=>Math.abs(value-${JSON.stringify(channels)}[index])<0.0001))`);
+  await waitFor(`window.colorProbe.filter(item=>item.text.trim()===${JSON.stringify(text)} && item.ink.every((value,index)=>Math.abs(value-${JSON.stringify(channels)}[index])<0.0001)).length >= ${occurrences}`);
 }
 
 export async function verifySourceCallColors({command,waitFor,key,capture,source,name}) {
@@ -31,6 +35,9 @@ export async function verifySourceCallColors({command,waitFor,key,capture,source
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   for(const [text,depth] of [['show',0],['one',3],['doubled',2],['doubled',1]])
     await verifySourceCallColor({waitFor,text,depth});
+  for (const [text,occurrences] of [['name',2],['quantity',2]]) {
+    await verifySourceInk({waitFor,text,color:'D6D3D1',occurrences});
+  }
   await capture(name+'-call-colors');
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:source});
