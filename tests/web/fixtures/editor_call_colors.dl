@@ -1,7 +1,6 @@
 one means: 1
-{value} doubled means: @intrinsic("add", value, value)
+{addend} doubled means: @intrinsic("add", addend, addend)
 to show {value}: @intrinsic("discard", value)
 show one doubled doubled
-remember {name} as {value} means: @intrinsic("store", name, value)
-remember quantity as one
+@intrinsic("store", quantity, one)
 show quantity doubled doubled

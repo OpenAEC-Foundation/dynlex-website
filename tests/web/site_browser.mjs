@@ -354,7 +354,7 @@ try {
   await verifySourceHover({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
   await verifySourceInspection({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
   await verifySourceFixes({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
-  await verifySourceCallColors({command,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
+  await verifySourceCallColors({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
   await key('Enter','Enter',13,2);
   await waitFor('window.siteProbe.texts.includes("7")');
   await click(120,480); await key('KeyA','a',65,2);

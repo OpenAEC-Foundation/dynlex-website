@@ -320,7 +320,7 @@ try {
   await verifySourceHover({command,evaluate,waitFor,key,capture,source:plan,name:'river'});
   await verifySourceInspection({command,evaluate,waitFor,key,capture,source:plan,name:'river'});
   await verifySourceFixes({command,evaluate,waitFor,key,capture,source:plan,name:'river'});
-  await verifySourceCallColors({command,waitFor,key,capture,source:plan,name:'river'});
+  await verifySourceCallColors({command,evaluate,waitFor,key,capture,source:plan,name:'river'});
   await pause(100);
   assert.equal(await evaluate('window.siteProbe.marks.length'),0,'Editing retained execution marks from another snapshot');
   await key('Enter','Enter',13,2);

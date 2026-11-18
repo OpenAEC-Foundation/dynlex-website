@@ -28,21 +28,23 @@ async function verifySourceInk({waitFor,text,color,occurrences=1}) {
   await waitFor(`window.colorProbe.filter(item=>item.text.trim()===${JSON.stringify(text)} && item.ink.every((value,index)=>Math.abs(value-${JSON.stringify(channels)}[index])<0.0001)).length >= ${occurrences}`);
 }
 
-export async function verifySourceCallColors({command,waitFor,key,capture,source,name}) {
+export async function verifySourceCallColors({command,evaluate,waitFor,key,capture,source,name}) {
   const program=await fs.readFile(new URL('./fixtures/editor_call_colors.dl',import.meta.url),'utf8');
+  const before=await evaluate('window.siteProbe.diagnostics.length');
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:program});
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   for(const [text,depth] of [['show',0],['one',3],['doubled',2],['doubled',1]])
     await verifySourceCallColor({waitFor,text,depth});
-  for (const [text,occurrences] of [['name',2],['quantity',2]]) {
+  for (const [text,occurrences] of [['addend',3],['quantity',2]]) {
     await verifySourceInk({waitFor,text,color:'D6D3D1',occurrences});
   }
+  await waitFor(`window.siteProbe.diagnostics.slice(${before}).some(result=>result.diagnostics.length===0)`);
   await capture(name+'-call-colors');
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:source});
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(source)}`);
-  console.log('Shared compiler-derived nested-call colors passed:',name);
+  console.log('Shared variable and nested-call colors passed:',name);
 }
 
 export async function verifySourcePaste({command,evaluate,waitFor,key,source}) {
