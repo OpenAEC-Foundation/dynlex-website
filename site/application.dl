@@ -8,6 +8,8 @@ import startup.dl
 
 # Replies have explicit owners and purposes. Platform services do not decide UI state.
 to get receive website reply {a pointer to JSON value:response} for {integer:job} indexed {integer:index} in {a pointer to website state:state}:
+    if job = 25:
+        receive the Studio library catalog response in state
     if job = 1:
         receive website environment response in state
         return true
@@ -116,6 +118,8 @@ to read website input {a pointer to UI view:view}:
                 set retained to receive website reply document for (pending's purpose) indexed (pending's index) in state
             else:
                 set view's instance's status to "An error occurred. Check the log."
+                if pending's purpose = 25:
+                    fail the Studio library request in state
                 if pending's purpose = 4:
                     set (state's shaders + pending's index)'s loading to false
                     set (state's shaders + pending's index)'s failed to true
@@ -160,6 +164,7 @@ to close the website {a pointer to UI view:view}:
     free state's progress's document
     free state's account's configuration
     free state's account's revision
+    close the Studio file browser in state
     free UI source workspace (state's language)
     close view
     close instance
@@ -207,6 +212,7 @@ function open the DynLex website using {a pointer to UI driver:driver} with {a p
         set view's close action to (the function named "close the website $") as a pointer
         open website appearance in state
         open website source editors in state
+        attach the Studio file browser in state
         initialize the website river in state
         initialize the website Farm in state
         connect website river inspection (the address of (state's river inspection)) within (river character page's content) in view

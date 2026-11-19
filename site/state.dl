@@ -42,6 +42,7 @@ class:
         language as a pointer to UI source workspace
         editor entry as a string
         editor light as a boolean
+        studio files as Studio file browser
         shader editor as website shader editor
         river as website river playback
         river inspection as website river inspection session

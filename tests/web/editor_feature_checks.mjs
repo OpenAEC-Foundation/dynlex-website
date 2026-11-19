@@ -109,6 +109,18 @@ export async function verifySourceDefinition({command,evaluate,waitFor,key,captu
   await key('ArrowLeft','ArrowLeft',37,1);
   await waitFor(`!window.siteProbe.visible.includes(${JSON.stringify(filename+' · Read only')}) && document.querySelector('textarea').value===${JSON.stringify(source)}`);
   assert.equal(await evaluate('location.href'),location,'Editor Back changed the browser location.');
+  // Navigate from a different caret position using the drawn token itself.
+  await key('End','End',35,2);
+  const token=source.split('\n')[line].trim().split(/\s+/)[0];
+  const point=await evaluate(`window.colorProbe.find(item=>item.text.trim().startsWith(${JSON.stringify(token)}) && item.width>0)`);
+  assert(point, 'The source call must be visible before modifier-click navigation');
+  const x=point.x+1, y=point.y, modifiers=name==='ide'?2:4;
+  await command('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,modifiers});
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1,modifiers});
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1,modifiers});
+  await waitFor(`window.siteProbe.visible.includes(${JSON.stringify(filename+' · Read only')})`);
+  await key('ArrowLeft','ArrowLeft',37,1);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(source)}`);
   console.log('Shared definition and return passed:',name);
 }
 

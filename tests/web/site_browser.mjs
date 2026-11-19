@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {verifyStudioProject} from './studio_project_checks.mjs';
 import {browserRelease as release} from './release_fixture.mjs';
 import {compilerPath} from '../../scripts/dependencies.mjs';
 import fs from 'node:fs/promises';
@@ -323,6 +324,8 @@ try {
       assert(traceComplete,'Chrome did not finish the requested trace');
       await fs.writeFile('.cache/farm-browser-trace.json',JSON.stringify({traceEvents}));
     }
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
+    await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:`http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
     await verifyFarmPage({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmRestore({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});

@@ -55,7 +55,7 @@ with open(os.environ['DYNLEX_LAUNCH_CAPTURE'],'a') as output:
     def test_default_runs_all_scenarios_and_backends_in_private_displays(self):
         result, calls = self.run_launcher()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(calls), 12)
+        self.assertEqual(len(calls), 15)
         actual = set()
         for call in calls:
             self.assertEqual(call['background'], '1')
@@ -67,7 +67,7 @@ with open(os.environ['DYNLEX_LAUNCH_CAPTURE'],'a') as output:
             self.assertTrue(call['args'][5].endswith('site with spaces'))
             actual.add((call['scenario'], call['args'][6]))
         self.assertEqual(actual, {(scenario, mode) for scenario in
-                         ['general', 'farm', 'river-inspection', 'river'] for mode in
+                         ['general', 'project', 'farm', 'river-inspection', 'river'] for mode in
                          ['webgpu', 'webgl-no-adapter', 'webgl-no-api']})
 
     def test_farm_can_be_selected_without_running_other_scenarios(self):

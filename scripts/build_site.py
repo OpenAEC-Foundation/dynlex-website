@@ -168,6 +168,9 @@ def main():
         editor.extract(stage / 'packages/dynlex-ide')
         dependencies.update({p.relative_to(root).as_posix(): p.read_text() for p in (site / 'language').glob('*.dl')})
         (stage / 'sdk-sources.json').write_text(json.dumps(dependencies) + '\n')
+        libraries = {path.relative_to(compiler_root).as_posix(): path.read_text()
+                     for path in (compiler_root / 'lib').rglob('*.dl')}
+        (stage / 'assets/studio-library.json').write_text(json.dumps(libraries | dependencies) + '\n')
         shutil.copy2(compiler_root / 'scripts/install_release.sh', stage / 'install.sh')
         (stage / 'install.sh').chmod(0o755)
         shutil.copytree(compiler_root / 'resources/branding', stage / 'assets/branding', dirs_exist_ok=True)
