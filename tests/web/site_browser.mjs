@@ -382,7 +382,7 @@ try {
   await capture('ide-executed');
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText',{text:'unrecognized instruction'});
-  await waitFor('window.siteProbe.texts.some(text => text.includes("This pattern couldn"))');
+  await waitFor('window.siteProbe.visible.map(text=>text.trim()).join(" ").includes("This pattern couldn")');
   const beforeValid = await evaluate('window.siteProbe.diagnostics.length');
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText',{text:'import lib/std.dl\nprint line "😀"'});
