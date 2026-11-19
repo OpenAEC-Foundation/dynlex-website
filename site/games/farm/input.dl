@@ -7,6 +7,7 @@ to [read website Farm input] {a pointer to UI view:view}:
         return nothing
     if view's input kind = 7:
         set session's focused to false
+    if (view's input kind = 7) or (view's input kind = 15):
         release website Farm gesture in state cancelled true
         return nothing
     if (state's route != "/index.html") or ((the value of "Challenge views" in (view's instance)) != 2):
@@ -24,7 +25,7 @@ to [read website Farm input] {a pointer to UI view:view}:
         set session's focused to inside
         set session's held key to 0
     if session's renderer != (0 as a pointer to website Farm renderer):
-        if (view's input kind = 5) and inside:
+        if ((view's input kind = 5) and (view's input code = 0)) and inside:
             zoom website Farm camera (the address of (session's renderer's camera)) by wheel (view's scroll y)
             set session's renderer's dirty to true
             set view's scroll x and view's scroll y to 0.0

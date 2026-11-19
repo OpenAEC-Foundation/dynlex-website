@@ -3,7 +3,7 @@
   "dependencies": {
     "dynlex-ui": {
       "archive": "dependencies/dynlex-ui.zip",
-      "contentHash": "a5c1748a840d51dfa28eee56133b55721bc6eaee1b0dfa45ea5b1fbcdad85446"
+      "contentHash": "c9859d4bf3914a267ca7ea9453dd47f4167128089fea0852f4a3a4131f39cc2f"
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",

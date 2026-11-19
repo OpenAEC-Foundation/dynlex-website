@@ -16,6 +16,7 @@ import {verifyFarmRestore} from './site_farm_restore_checks.mjs';
 import {verifyFarmWeather} from './site_farm_weather_checks.mjs';
 import {verifyIdeTheme} from './site_theme_checks.mjs';
 import {verifyRiverInspection} from './site_river_inspection_checks.mjs';
+import {verifyHomeShader, verifyMobileSwipe} from './site_home_interaction_checks.mjs';
 
 const directory = path.resolve(process.argv[2] || 'build/site');
 const graphicsMode = process.argv[3] || 'system';
@@ -23,6 +24,7 @@ const farmProfiling = Boolean(process.env.DYNLEX_FARM_PROFILE || process.env.DYN
 const assetBase = process.argv[4] || '/';
 assert(['system', 'webgpu', 'webgl-no-adapter', 'webgl-no-api'].includes(graphicsMode));
 assert(assetBase.startsWith('/') && assetBase.endsWith('/'));
+const { fonts } = JSON.parse(await fs.readFile(path.join(directory, 'application.json'), 'utf8'));
 const pagePaths = new Set(['/', '/install.sh']);
 for (const page of JSON.parse(await fs.readFile(path.join(directory, 'routes.json'), 'utf8'))) {
   pagePaths.add(page.path); pagePaths.add(page.path.slice(0, page.path.lastIndexOf('/') + 1));
@@ -138,7 +140,7 @@ try {
   });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: await fs.readFile(new URL('./fixtures/ui-color-probe.js', import.meta.url), 'utf8') });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
-    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0 };
+    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0, heroFrames: 0, riverTitle: null };
     if (${JSON.stringify(farmProfiling)}) {
       const requestFrame = window.requestAnimationFrame.bind(window);
       window.siteProbe.nativeFrame=requestFrame;
@@ -163,6 +165,15 @@ try {
       if (env?.ui_text_mask) {
         const begin = env.ui_begin, mask = env.ui_text_mask;
         const decoder = new TextDecoder();
+        const registered = ${JSON.stringify(fonts)}, openFont = env.ui_open_font, faces = new Map();
+        env.ui_open_font = (surface, pointer, size, ...args) => {
+          const resource = openFont(surface, pointer, size, ...args);
+          const bytes = new Uint8Array(env.__linear_memory.buffer, pointer);
+          const path = decoder.decode(bytes.subarray(0, bytes.indexOf(0)));
+          const index = registered.findIndex(font => font.path === path);
+          faces.set(resource, { index, size, weight: registered[index].weight });
+          return resource;
+        };
         const farm = new Set(), textures = new Set(), draws = env.ui_shader_draws, frame = env.ui_shader_frame;
         const triangles = env.ui_triangles;
         const vertexBuffer=env.ui_shader_vertex_buffer,uniform=env.ui_shader_uniform;
@@ -188,6 +199,7 @@ try {
         env.ui_shader_frame = (surface,shader,width,height) => {
           const texture = frame(surface,shader,width,height);
           if (farm.has(shader)) { textures.add(texture); window.siteProbe.farmFrames.push({shader,width,height}); }
+          else if (location.pathname === '/' || location.pathname === '/index.html') window.siteProbe.heroFrames++;
           return texture;
         };
         env.ui_triangles = (surface,pointer,count,texture,x,y,width,height) => {
@@ -217,7 +229,20 @@ try {
         };
         env.ui_text_mask = (font, pointer, count, ...args) => {
           const result = mask(font, pointer, count, ...args);
-          if (result) window.siteProbe.visible.push(decoder.decode(new Uint8Array(env.__linear_memory.buffer, pointer, count)));
+          if (result) {
+            const text = decoder.decode(new Uint8Array(env.__linear_memory.buffer, pointer, count));
+            window.siteProbe.visible.push(text);
+            if (text === 'Wolf, sheep, and hay' && args[2] < 0 && args[4] > 0) {
+              if (!window.siteProbe.riverTitle) {
+                const {index,size,weight} = faces.get(font);
+                const context = new OffscreenCanvas(1, 1).getContext('2d');
+                context.font = weight + ' ' + size + 'px "DynLexUI' + index + '"';
+                // Compare the actual glyph pixels with the DynLex mask's clip.
+                window.siteProbe.riverTitle = { bottom: 0, descent: context.measureText(text).actualBoundingBoxDescent };
+              }
+              window.siteProbe.riverTitle.bottom = Math.max(window.siteProbe.riverTitle.bottom, args[4]);
+            }
+          }
           return result;
         };
       }
@@ -328,9 +353,17 @@ try {
     await verifyFarmRestore({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmWeather({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
   } else {
+  await verifyHomeShader({command,evaluate,waitFor});
   await click(335,627); await pause(1500); await capture('terrain');
   await click(335,627); await pause(1500); await capture('nano');
-  await click(800,22); await pause(700); await capture('challenges');
+  await click(800,22);
+  await waitFor('location.hash === "#challenges"');
+  await pause(700);
+  await controls.wheel(250);
+  await capture('challenges');
+  await waitFor('window.siteProbe.riverTitle !== null');
+  const title = await evaluate('window.siteProbe.riverTitle');
+  assert(title.descent > 0 && title.bottom >= title.descent, `The river title clipped descenders: ${JSON.stringify(title)}`);
   await click(1115,22);
   await waitFor('location.pathname === "/wiki/index.html" && document.title === "DynLex Wiki"');
   await pause(1600); await capture('docs');
@@ -416,7 +449,7 @@ try {
   await command('Input.dispatchMouseEvent',{type:'mouseWheel',x:600,y:650,deltaX:0,deltaY:720});
   await pause(900); await capture('scrolled');
   await command('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
-  await pause(900); await capture('mobile');
+  await pause(900); await verifyMobileSwipe({command,evaluate,waitFor}); await capture('mobile');
   await command('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
   await pause(500); await click(1220,22);
   await waitFor('location.pathname === "/download.html" && window.siteProbe.texts.includes("DynLex for Linux")');
