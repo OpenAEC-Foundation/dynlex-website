@@ -43,6 +43,13 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   for(let i=0;i<3;i++) await key('ArrowLeft','ArrowLeft',37);
   await clickText('Definition');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
+  await key('ArrowLeft','ArrowLeft',37,1);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
+  await key('Home','Home',36,2);
+  const {x,y}=await controls.revealText('doubled');
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1,modifiers:2});
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1,modifiers:2});
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await clickText('Delete file');
   await clickText('Confirm delete');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
