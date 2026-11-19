@@ -1,18 +1,32 @@
 """Route shells share the selected immutable asset base, including nested pages."""
 from pathlib import Path
+from stat import S_IMODE
 import sys
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from build_site import asset_base, write_routes, copy_public_files
+from build_site import asset_base, copy_public_files, publish_site, write_routes
 
 
 class SiteRoutes(unittest.TestCase):
+    @unittest.skipIf(sys.platform == 'win32', 'Production nginx uses POSIX directory permissions')
+    def test_published_release_is_traversable_by_the_web_server(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stage, release = root / 'staging', root / 'release'
+            stage.mkdir(mode=0o700)
+            (stage / 'index.html').write_text('Public homepage')
+            publish_site(stage, release)
+            self.assertEqual(S_IMODE(stage.stat().st_mode), 0o700)
+            self.assertEqual(S_IMODE(release.stat().st_mode), 0o755)
+            self.assertEqual((release / 'index.html').read_text(), 'Public homepage')
+
     def test_deployment_builds_the_dynlex_site_with_immutable_asset_urls(self):
         workflow = (ROOT / '.github/workflows/deploy.yml').read_text()
         self.assertIn('python3 scripts/build_site.py --base "/releases/$RELEASE/" --output "$RUNNER_TEMP/site"', workflow)
+        self.assertLess(workflow.index('Verify public release'), workflow.index('Remove superseded deployment files'))
         self.assertNotIn('build_web_root.sh', workflow)
         self.assertNotIn('prepare_web_deployment.mjs', workflow)
 

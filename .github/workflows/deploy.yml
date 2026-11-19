@@ -75,6 +75,10 @@ jobs:
           else
             mv "$incoming" "$release_path"
           fi
+          if [ "$(stat -c %a "$release_path")" != 755 ]; then
+            echo "The release directory must have mode 0755 so nginx can read it." >&2
+            exit 1
+          fi
           touch "$release_path"
           ln -s "releases/$RELEASE" "$DEPLOY_PATH/current.next"
           mv -Tf "$DEPLOY_PATH/current.next" "$DEPLOY_PATH/current"
@@ -96,6 +100,22 @@ jobs:
           nginx -t
           systemctl reload nginx
           REMOTE
+
+      - name: Verify public release
+        run: |
+          set -euo pipefail
+          public_site="https://$(basename "$DEPLOY_PATH")"
+          curl_options=(--fail --silent --show-error --retry 3 --retry-all-errors --max-time 15)
+          homepage="$RUNNER_TEMP/dynlex-home.html"
+          release_url="$public_site/releases/$RELEASE"
+          curl "${curl_options[@]}" --output "$homepage" "$public_site/"
+          if ! grep -Fq "src=\"/releases/$RELEASE/platform/start.js\"" "$homepage"; then
+            echo "The public homepage did not reference release $RELEASE." >&2
+            exit 1
+          fi
+          for asset in platform/start.js application.wasm; do
+            curl "${curl_options[@]}" --head --output /dev/null "$release_url/$asset"
+          done
 
       - name: Remove superseded deployment files
         run: |

@@ -72,6 +72,15 @@ def copy_public_files(site, stage):
             shutil.copy2(source, target)
 
 
+def publish_site(stage, output):
+    if output.exists():
+        shutil.rmtree(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(stage, output)
+    # The private staging directory's mode is preserved by copytree.
+    output.chmod(0o755)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=Path('build/site'))
@@ -166,10 +175,7 @@ def main():
         copy_public_files(site, stage)
         subprocess.run(['node', str(stage / 'packages/dynlex-ui/tools/wasm_delivery.mjs'), str(stage / 'application.wasm')], check=True)
         subprocess.run(['node', str(root / 'scripts/prepare_delivery.mjs'), str(stage)], check=True)
-        if output.exists():
-            shutil.rmtree(output)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(stage, output)
+        publish_site(stage, output)
     print(f'Built DynLex site: {output}')
 
 
