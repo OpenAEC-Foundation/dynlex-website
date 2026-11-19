@@ -10,7 +10,7 @@ website page home page at "/index.html" titled "DynLex — Make the language par
             paragraph "DYNLEX / LIVE GPU" using hero signal appearance
             paragraph "Code becomes\nlight." using hero title appearance
             paragraph "Compilation measurement" containing "Run a sketch to measure compilation\non this device." using hero signal appearance
-            region "Shader actions" using columns appearance:
+            region "Shader actions" using hero actions appearance:
                 link "Next shader →" to "action:next-shader" using navigation link appearance
                 link "Open this shader ↗" to "/ide/index.html?mode=shader&scene=event-horizon" using navigation link appearance
 

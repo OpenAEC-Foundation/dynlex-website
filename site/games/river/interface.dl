@@ -9,6 +9,7 @@ appearance river panel appearance:
     corner radius is 16
     when viewport is below 700:
         padding is 12
+        gap is 12
 
 appearance river card appearance:
     background is UI ink 27 45 48
@@ -17,6 +18,9 @@ appearance river card appearance:
     corner radius is 10
     padding is 16
     gap is 14
+    when viewport is below 700:
+        padding is 12
+        gap is 10
 
 appearance river stage appearance:
     aspect ratio is 16 by 9
@@ -32,7 +36,7 @@ appearance river code appearance:
     font size is 14
     padding is 14
     when viewport is below 700:
-        height is 240
+        height is 224
 
 appearance river signal appearance:
     font is "assets/fonts/JetBrainsMono-400.ttf"

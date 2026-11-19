@@ -5,14 +5,20 @@ appearance page appearance:
     text is UI ink 42 42 50
     font size is 17
     line spacing is 1.6
+    when viewport is below 700:
+        font size is 16
+        line spacing is 1.5
 
 appearance content appearance:
     maximum width is 1320
     padding is 48
     gap is 32
+    when viewport is below 900:
+        padding is 24
+        gap is 20
     when viewport is below 700:
-        padding is 20
-        gap is 24
+        padding is 16
+        gap is 16
 
 appearance header appearance:
     background is UI ink 42 42 50
@@ -23,8 +29,11 @@ appearance header content appearance:
     maximum width is 1320
     padding is 10
     columns are 2
-    stack below 900
+    stack below 1100
     gap is 12
+    when viewport is below 1100:
+        padding is 7
+        gap is 4
 
 appearance brand appearance:
     font is "assets/fonts/SpaceGrotesk-700.ttf"
@@ -32,11 +41,14 @@ appearance brand appearance:
     text is UI ink 245 198 91
     padding is 6
     line spacing is 1.1
+    when viewport is below 1100:
+        font size is 24
+        padding is 4
 
 appearance navigation appearance:
     columns are 6
     gap is 4
-    when viewport is below 700:
+    when viewport is below 560:
         columns are 3
 
 appearance navigation link appearance:
@@ -47,23 +59,27 @@ appearance navigation link appearance:
     lines do not wrap
     text is centered
     corner radius is 6
+    when viewport is below 1100:
+        minimum height is 32
 
 appearance title appearance:
     font is "assets/fonts/SpaceGrotesk-700.ttf"
     font size is 64
     line spacing is 1.08
     when viewport is below 700:
-        font size is 40
+        font size is 32
 
 appearance heading appearance:
     use title appearance
     font size is 40
     when viewport is below 700:
-        font size is 30
+        font size is 24
 
 appearance body appearance:
     font size is 17
     text is UI ink 98 98 109
+    when viewport is below 700:
+        font size is 16
 
 appearance signal appearance:
     font is "assets/fonts/JetBrainsMono-400.ttf"
@@ -74,14 +90,22 @@ appearance columns appearance:
     columns are 2
     stack below 840
     gap is 32
+    when viewport is below 900:
+        gap is 20
+    when viewport is below 700:
+        gap is 16
 
 appearance stack appearance:
     gap is 24
+    when viewport is below 700:
+        gap is 14
 
 appearance cards appearance:
     columns are 3
     stack below 900
     gap is 24
+    when viewport is below 700:
+        gap is 16
 
 appearance card appearance:
     background is UI ink 255 255 255
@@ -90,6 +114,9 @@ appearance card appearance:
     corner radius is 12
     padding is 24
     gap is 16
+    when viewport is below 700:
+        padding is 14
+        gap is 10
 
 appearance link appearance:
     font is bold
@@ -97,6 +124,9 @@ appearance link appearance:
     padding is 12
     corner radius is 6
     text is UI ink 146 64 14
+    when viewport is below 700:
+        padding is 10
+        minimum height is 40
 
 appearance primary link appearance:
     use link appearance
@@ -108,6 +138,9 @@ appearance challenge artwork appearance:
     height is 220
     corner radius is 8
     image fit is cover
+    when viewport is below 700:
+        height is 0
+        aspect ratio is 16 by 9
 
 appearance game progress appearance:
     use card appearance
@@ -140,36 +173,50 @@ appearance code appearance:
     padding is 24
     height is 260
     lines do not wrap
+    when viewport is below 700:
+        line spacing is 1.55
+        padding is 14
+        height is 200
 
 appearance output appearance:
     font is "assets/fonts/JetBrainsMono-400.ttf"
     font size is 14
     line spacing is 1.7
     minimum height is 80
+    when viewport is below 700:
+        minimum height is 56
+
+the wide hero height means: 680
+the compact hero height means: 340
 
 appearance hero appearance:
     background is UI ink 9 11 18
     text is UI ink 250 250 249
     flow is overlay
-    minimum height is 680
-    when viewport is below 700:
-        minimum height is 560
+    minimum height is the wide hero height
+    when viewport is below 1000:
+        minimum height is the compact hero height
 
 appearance shader appearance:
-    height is 680
-    when viewport is below 700:
-        height is 560
+    height is the wide hero height
+    when viewport is below 1000:
+        height is the compact hero height
 
 appearance hero copy appearance:
     use content appearance
     gap is 32
+    when viewport is below 1000:
+        padding is 16
+        gap is 14
 
 appearance hero title appearance:
     use title appearance
     font size is 88
     text is UI ink 250 250 249
+    when viewport is below 1000:
+        font size is 42
     when viewport is below 700:
-        font size is 56
+        font size is 32
 
 appearance hero signal appearance:
     use signal appearance
@@ -177,8 +224,14 @@ appearance hero signal appearance:
 
 appearance hero space appearance:
     height is 128
-    when viewport is below 700:
-        height is 64
+    when viewport is below 1000:
+        height is 24
+
+appearance hero actions appearance:
+    use columns appearance
+    when viewport is below 1000:
+        stack below 0
+        gap is 8
 
 appearance footer appearance:
     use content appearance

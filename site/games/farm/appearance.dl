@@ -9,6 +9,7 @@ appearance farm panel appearance:
     corner radius is 16
     when viewport is below 700:
         padding is 12
+        gap is 12
 
 appearance farm card appearance:
     background is UI ink 27 45 39
@@ -17,6 +18,9 @@ appearance farm card appearance:
     corner radius is 10
     padding is 16
     gap is 12
+    when viewport is below 700:
+        padding is 12
+        gap is 8
 
 appearance farm body appearance:
     font size is 14
@@ -65,7 +69,7 @@ appearance farm code appearance:
     font size is 14
     padding is 14
     when viewport is below 700:
-        height is 280
+        height is 240
 
 appearance farm stage appearance:
     aspect ratio is 4 by 3
@@ -76,6 +80,8 @@ appearance farm columns appearance:
     columns are 2
     stack below 980
     gap is 20
+    when viewport is below 700:
+        gap is 12
 
 appearance farm controls appearance:
     columns are 2
