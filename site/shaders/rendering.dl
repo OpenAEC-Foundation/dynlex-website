@@ -71,7 +71,7 @@ to [initialize loaded website shader data in] {a pointer to website shader view:
         increment index
 
 to advance website shader {a pointer to website shader view:scene} visible {boolean:visible} in {a pointer to UI view:view}:
-    set active to (visible and view's active) and ((scene's resource != (0 as a pointer)) and ((scene's paused = false) and (view's instance's reduced motion = false)))
+    set active to (visible and view's visible) and ((scene's resource != (0 as a pointer)) and ((scene's paused = false) and (view's instance's reduced motion = false)))
     if active:
         set active to UI shader program (scene's program) uses input "time"
     if active and (scene's active):
