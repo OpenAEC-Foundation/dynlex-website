@@ -157,6 +157,8 @@ appearance game progress actions appearance:
     columns are 2
     padding is 0
     gap is 0
+    when viewport is below 480:
+        columns are 1
 
 appearance game save status appearance:
     use body appearance
