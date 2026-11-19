@@ -258,7 +258,7 @@ try {
   await capture(resumeOnly?'river-resume-start':'desktop');
   console.log(JSON.stringify(await evaluate('({title:document.title,api:window.siteProbe.api,paints:window.siteProbe.paints})')));
   if(graphicsMode !== 'system') assert.equal(await evaluate('window.siteProbe.api'),graphicsMode === 'webgpu' ? 'webgpu' : 'webgl2');
-  const {click,clickText,textVisible,wheel}=canvasControls({command,evaluate,capture});
+  const {click,clickText,textVisible,revealText,wheel}=canvasControls({command,evaluate,capture});
   const key = async (code,key,number,modifiers=0) => {
     await command('Input.dispatchKeyEvent',{type:'keyDown',code,key,windowsVirtualKeyCode:number,modifiers});
     await command('Input.dispatchKeyEvent',{type:'keyUp',code,key,windowsVirtualKeyCode:number,modifiers});
@@ -314,7 +314,7 @@ try {
   await verifySourceCompletion({command,evaluate,waitFor,key,capture,
     source:'get t',prefix:'import site/language/river_challenge.dl\n\n',name:'river'});
   await verifySourcePaste({command,evaluate,waitFor,key,source:plan});
-  await verifySourceSearch({command,waitFor,key,capture,source:plan,query:'get the hay in the boat',replacement:'get hay in the boat',name:'river'});
+  await verifySourceSearch({command,waitFor,key,capture,revealText,source:plan,query:'get the hay in the boat',replacement:'get hay in the boat',name:'river'});
   await verifySourceNavigationAppearance({waitFor,disabled:true});
   await verifySourceDefinition({command,evaluate,waitFor,key,capture,source:plan,line:1,column:4,filename:'river_challenge.dl',name:'river'});
   await verifySourceHover({command,evaluate,waitFor,key,capture,source:plan,name:'river'});

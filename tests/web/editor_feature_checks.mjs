@@ -72,8 +72,8 @@ export async function verifySourceCompletion({command,evaluate,waitFor,key,captu
   await command('Input.insertText',{text:source});
   await evaluate('window.siteProbe.completions=[]');
   await key('Space',' ',32,2);
-  await waitFor('window.siteProbe.completions.length>0 && window.siteProbe.visible.includes("↑ ↓ choose  ·  Enter insert  ·  Esc close")');
-  const items=await evaluate('window.siteProbe.completions.at(-1)');
+  await waitFor('window.siteProbe.completions.some(items=>items.length>0) && !window.siteProbe.visible.includes("Finding suggestions…") && window.siteProbe.visible.includes("↑ ↓ choose  ·  Enter insert  ·  Esc close")');
+  const items=await evaluate('window.siteProbe.completions.findLast(items=>items.length>0)');
   items.sort((a,b)=>(a.sortText??a.label)<(b.sortText??b.label)?-1:(a.sortText??a.label)>(b.sortText??b.label)?1:0);
   const item=items[0];
   assert(item.textEdit && !item.additionalTextEdits,'This fixture must have one protocol text edit.');

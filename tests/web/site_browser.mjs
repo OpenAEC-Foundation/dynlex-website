@@ -308,7 +308,7 @@ try {
   await capture(inspection?'river-character-desktop':'desktop');
   console.log(JSON.stringify(await evaluate('({title:document.title,api:window.siteProbe.api,paints:window.siteProbe.paints})')));
   const controls=canvasControls({command,evaluate,capture});
-  const {click,key,clickText,clickVisibleText}=controls;
+  const {click,key,clickText,clickVisibleText,revealText}=controls;
   if (inspection) {
     await verifyRiverInspection({command,evaluate,waitFor,controls,capture});
   } else if (process.env.DYNLEX_FARM_PROFILE_ONLY) {
@@ -351,7 +351,7 @@ try {
   await verifySourceCompletion({command,evaluate,waitFor,key,capture,
     source:'import lib/std.dl\npri',prefix:'',name:'ide'});
   await verifySourcePaste({command,evaluate,waitFor,key,source:'import lib/std.dl\nprint line 7'});
-  await verifySourceSearch({command,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',query:'7',replacement:'8',name:'ide'});
+  await verifySourceSearch({command,waitFor,key,capture,revealText,source:'import lib/std.dl\nprint line 7',query:'7',replacement:'8',name:'ide'});
   await verifySourceNavigationAppearance({waitFor,disabled:true});
   await verifySourceDefinition({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',line:1,column:0,filename:'string.dl',name:'ide'});
   await verifySourceHover({command,evaluate,waitFor,key,capture,source:'import lib/std.dl\nprint line 7',name:'ide'});
