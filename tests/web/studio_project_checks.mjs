@@ -17,6 +17,11 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
     await click(field.x,field.y);
     await replace(path);
   };
+  const ctrlClick=async token=>{
+    const {x,y}=await controls.revealText(token);
+    await command('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1,modifiers:2});
+    await command('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1,modifiers:2});
+  };
   const helper='tools/math/double.dl',renamed='tools/math/twice.dl';
   const contents='{number} doubled means: @intrinsic("add", number, number)';
   await editPath('main.dl',helper);
@@ -26,10 +31,21 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   await editPath(helper,renamed);
   await clickText('Rename file');
   await clickText('Main file');
-  const program='import lib/std.dl\nimport '+renamed+'\nprint line (21 doubled)';
+  const program='import std.dl\nimport '+renamed+'\nprint line (21 doubled)';
   await replace(program);
   await clickText('Run program ▶');
   await waitFor('window.siteProbe.texts.some(item=>item.trim()==="42")');
+  await ctrlClick('std.dl');
+  await waitFor('window.siteProbe.visible.includes("std.dl · Read only")');
+  await key('ArrowLeft','ArrowLeft',37,1);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
+  // F12 on a project import uses the same language-server lookup.
+  await key('Home','Home',36,2);
+  await key('ArrowDown','ArrowDown',40);
+  await key('End','End',35);
+  await key('ArrowLeft','ArrowLeft',37);
+  await key('F12','F12',123);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await command('Page.reload',{});
   await waitFor('window.siteProbe?.visible.includes("main.dl")');
   await clickText('▸ tools');
@@ -46,9 +62,7 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   await key('ArrowLeft','ArrowLeft',37,1);
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   await key('Home','Home',36,2);
-  const {x,y}=await controls.revealText('doubled');
-  await command('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1,modifiers:2});
-  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1,modifiers:2});
+  await ctrlClick('doubled');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await clickText('Delete file');
   await clickText('Confirm delete');
