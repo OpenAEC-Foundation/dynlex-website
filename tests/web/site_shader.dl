@@ -12,6 +12,7 @@ set view to a new UI view
 set view's driver to the address of driver
 set view's instance to the address of instance
 set view's active to true
+set view's visible to true
 set state to a new website state
 set state's services to the browser UI service provider
 set state's view to the address of view
@@ -54,11 +55,15 @@ require condition (rendering's seconds = 0.25) reporting "Returning to a preview
 set view's active to false
 set view's seconds to 31.0
 advance website shader rendering visible true in (the address of view)
-require condition (rendering's active = false) reporting "An inactive surface kept its shader clock active"
-set view's active to true
+require condition ((rendering's active) and (rendering's seconds = 1.25)) reporting "Losing keyboard focus stopped a visible shader"
+set view's visible to false
+set view's seconds to 32.0
+advance website shader rendering visible true in (the address of view)
+require condition (rendering's active = false) reporting "A hidden surface kept its shader clock active"
+set view's visible to true
 set view's seconds to 60.0
 advance website shader rendering visible true in (the address of view)
-require condition (rendering's seconds = 0.25) reporting "Returning to the tab counted time spent inactive"
+require condition ((rendering's active) and (rendering's seconds = 1.25)) reporting "Returning to the tab counted hidden time or required focus"
 stop website program 2 in (the address of state)
 require condition (rendering's paused) reporting "Stop did not pause the preview"
 toggle the website shader preview in (the address of state)
