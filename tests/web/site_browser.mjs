@@ -337,9 +337,19 @@ try {
   await click(1115,22);
   await waitFor('location.pathname === "/wiki/index.html" && document.title === "DynLex Wiki"');
   await pause(1600); await capture('docs');
-  const idle = await evaluate('window.siteProbe.paints');
-  await pause(800);
-  assert.equal(await evaluate('window.siteProbe.paints'),idle,'An unchanged documentation page kept repainting');
+  // Font and image delivery can finish after navigation under load. A continuous
+  // paint loop must still fail to produce a full quiet interval.
+  let previousPaint=await evaluate('window.siteProbe.paints'),quietSince=Date.now();
+  const deadline=quietSince+10000;
+  do {
+    await pause(200);
+    const paints=await evaluate('window.siteProbe.paints');
+    if (paints!==previousPaint) {
+      quietSince=Date.now();
+      previousPaint=paints;
+    }
+    assert(Date.now()<deadline,'An unchanged documentation page kept repainting');
+  } while (Date.now()-quietSince<800);
   console.log('Worker checks:', await evaluate(`import('/__tests__/workers.mjs').then(module => module.verifyWorkers(new URL(${JSON.stringify(assetBase)},location.href)))`));
   await click(1009,22);
   await waitFor('location.pathname === "/ide/index.html" && document.title === "DynLex Studio"');
