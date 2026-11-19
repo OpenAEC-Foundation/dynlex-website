@@ -6,9 +6,9 @@ export async function verifySourceSearch({command,waitFor,key,capture,revealText
   await key('Home','Home',36,2);
   await key('KeyF','f',70,2);
   await command('Input.insertText',{text:query});
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(query)}`);
   // Narrow layouts can place the match count below the source search input.
   await revealText('1 of 1');
-  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(query)}`);
   await key('KeyH','h',72,2);
   await command('Input.insertText',{text:replacement});
   await key('Enter','Enter',13,3); // Control+Alt+Enter replaces all in one transaction.
