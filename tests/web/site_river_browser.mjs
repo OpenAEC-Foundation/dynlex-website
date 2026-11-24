@@ -367,7 +367,10 @@ try {
   await command('Page.reload',{ignoreCache:true});
   } else saved=await evaluate('JSON.parse(localStorage.getItem("dynlex.games.guest"))');
   await waitFor('window.siteProbe?.paints > 2');
-  await clickText('Continue your game →');
+  const resume = await revealText('Continue your game →');
+  assert(await evaluate('window.colorProbe.some(item => item.text === "Continue your game →")'),
+    'The resume action wrapped on the phone.');
+  await click(resume.x,resume.y);
   await clickText('this is invalid river code');
   // Mobile places the world and goals below the source editor. Reveal them
   // before checking their painted state rather than waiting above the fold.

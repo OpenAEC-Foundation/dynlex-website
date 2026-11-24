@@ -17,7 +17,7 @@ import {verifyFarmRestore} from './site_farm_restore_checks.mjs';
 import {verifyFarmWeather} from './site_farm_weather_checks.mjs';
 import {verifyIdeTheme} from './site_theme_checks.mjs';
 import {verifyRiverInspection} from './site_river_inspection_checks.mjs';
-import {verifyHomeShader, verifyMobileSwipe} from './site_home_interaction_checks.mjs';
+import {verifyHomeShader, verifyMobileSwipe, verifyResponsiveHome} from './site_home_interaction_checks.mjs';
 
 const directory = path.resolve(process.argv[2] || 'build/site');
 const graphicsMode = process.argv[3] || 'system';
@@ -357,6 +357,7 @@ try {
     await verifyFarmWeather({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
   } else {
   await verifyHomeShader({command,evaluate,waitFor});
+  await verifyResponsiveHome({command,evaluate,waitFor});
   await click(335,627); await pause(1500); await capture('terrain');
   await click(335,627); await pause(1500); await capture('nano');
   await click(800,22);
