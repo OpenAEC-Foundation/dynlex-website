@@ -7,7 +7,7 @@
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
-      "contentHash": "f5bbe304e8a71d3d62ca87c78977747e981be480da7e747c2e19ef39c94789ce"
+      "contentHash": "2cc18fb717b73c6fcc2bd2aef72ffbb8ed789e25dc0b3eef529c197a38b3dd49"
     },
     "dynlex-ide": {
       "archive": "dependencies/dynlex-ide.zip",
