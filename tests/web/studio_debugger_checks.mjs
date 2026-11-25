@@ -16,7 +16,7 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   await clickText('Debug program');
   const paused=async count=>{
     await waitFor(`window.siteProbe.debugEvents.filter(event=>event.type==='program-paused').length===${count}`);
-    await waitFor('window.siteProbe.visible.some(text=>text.startsWith("Paused")) && document.activeElement===document.querySelector("textarea")');
+    await waitFor('document.activeElement===document.querySelector("textarea") && window.colorProbe.some(item=>item.text.includes("import") && item.x<innerWidth/2)');
   };
   const latest="window.siteProbe.debugEvents.filter(event=>event.type==='program-paused').at(-1)";
   await paused(1);
@@ -36,6 +36,8 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   };
   await expandItems();
   await waitFor('window.siteProbe.visible.some(text=>text.includes("[0]:") && text.endsWith("= 4")) && window.siteProbe.visible.some(text=>text.includes("[1]:") && text.endsWith("= 5"))');
+  await controls.wheel(900);
+  await waitFor('!window.colorProbe.some(item=>item.text.includes("import") && item.x<innerWidth/2)');
 
   await key('F11','F11',122); await paused(4);
   assert.equal(await evaluate(`${latest}.frames.length`),2);
