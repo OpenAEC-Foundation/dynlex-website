@@ -7,8 +7,12 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
   const provider = createCompilerServices(new URL('compiler/', base), new URL('sdk-sources.json', base));
   const deadline = new AbortController();
   const signal = deadline.signal;
-  let phase = 'initial compile';
-  const timer = setTimeout(() => deadline.abort(new Error(`Worker test timed out during ${phase}`)), 30000);
+  let timer;
+  const enterPhase = phase => {
+    clearTimeout(timer);
+    timer = setTimeout(() => deadline.abort(new Error(`Worker test timed out during ${phase}`)), 30000);
+  };
+  enterPhase('initial compile');
   const compile = source => provider.services.compiler({ operation: 'compile', target: 'cpu',
     entry: 'main.dl', traced: false, sources: { 'main.dl': source } }, { signal });
   try {
@@ -20,13 +24,13 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     const result = await compile('import lib/std.dl\nprint line 42\n');
     require(result.status === 0, JSON.stringify(result));
     const chunks = [], events = [];
-    phase = 'first execution';
+    enterPhase('first execution');
     await provider.services.program({ artifact: result.artifact, invocation: 1, outputLimit: 1024 },
       { signal, emit: event => { events.push(event.type); if(event.type==='program-output') chunks.push(event.output); } });
     require(chunks.join('') === '42\n', 'The isolated program lost its output');
     require(events[0]==='program-started' && events.filter(type=>type==='program-started').length===1,
       'A program did not announce its execution boundary before output');
-    phase = 'output limit';
+    enterPhase('output limit');
     const verbose = await compile('import lib/std.dl\nprint line "Too much output."\n');
     require(verbose.status === 0, JSON.stringify(verbose));
     let outputFailure;
@@ -36,15 +40,15 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     } catch (error) { outputFailure=error.message; }
     require(outputFailure==='An error occurred. Check the log.',
       'The output budget did not terminate execution with a generic client error');
-    phase = 'SDK compile';
+    enterPhase('SDK compile');
     const sdk = await compile('import packages/dynlex-ui/ui/declarations.dl\nwindow demo:\n    button "Test"\nprint line demo\'s count\n');
     require(sdk.status === 0, 'The compiler worker could not import the pinned UI SDK');
     await provider.services.compiler({ operation: 'release', artifact: sdk.artifact }, { signal });
-    phase = 'invalid source';
+    enterPhase('invalid source');
     const invalid = await compile('unknown instruction\n');
     require(invalid.status !== 0 && !Object.hasOwn(invalid, 'artifact') && invalid.diagnostics.length > 0,
       'A failed compilation retained a runnable artifact');
-    phase = 'infinite source';
+    enterPhase('infinite source');
     const infinite = await compile('import lib/std.dl\nloop while true:\n    ignore 1\n');
     require(infinite.status === 0, JSON.stringify(infinite));
     const stop = new AbortController();
@@ -55,11 +59,11 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     let cancelled = false;
     try { await running; } catch (error) { cancelled = error.name === 'AbortError'; }
     require(heartbeat && cancelled, 'An infinite program blocked the browser or ignored Stop');
-    phase = 'compile after Stop';
+    enterPhase('compile after Stop');
     const next = await compile('import lib/std.dl\nprint line 7\n');
     require(next.status === 0, 'Stopping a program damaged the compiler');
     await provider.services.compiler({ operation: 'release', artifact: next.artifact }, { signal });
-    phase = 'debugger';
+    enterPhase('debugger');
     const debugSource = "import lib/std.dl\nset counter to 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n";
     const debugged = await provider.services.compiler({ operation: 'compile', target: 'cpu',
       entry: 'main.dl', debugged: true, sources: { 'main.dl': debugSource } }, { signal });
@@ -91,7 +95,7 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     require(point.reason === 'breakpoint' && value(point, 'counter') === '9', 'The worker missed its breakpoint');
     await debug(point, 'continue'); await debugRun;
     require(debugOutput.join('') === '2\n9\n', 'Debugging lost program output');
-    phase = 'step into a pure literal call';
+    enterPhase('step into a pure literal call');
     const pure = await provider.services.compiler({ operation: 'compile', target: 'cpu', entry: 'main.dl', debugged: true,
       sources: { 'main.dl': 'import lib/std.dl\nto get increased number:\n    return number + 1\nset answer to increased 7\nprint line answer\n' } }, { signal });
     require(pure.status === 0, JSON.stringify(pure));
@@ -115,7 +119,7 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     await provider.services.debugger({ invocation: 6, command: 'continue', pause: purePoint.pause }, { signal });
     await pureRunning;
     require(pureOutput.join('') === '8\n', 'The pure call lost its output');
-    phase = 'pause a running debug loop';
+    enterPhase('pause a running debug loop');
     const loopDebug = await provider.services.compiler({ operation: 'compile', target: 'cpu', entry: 'main.dl',
       debugged: true, sources: { 'main.dl': 'import lib/std.dl\nloop while true:\n    ignore 1\n' } }, { signal });
     require(loopDebug.status === 0, JSON.stringify(loopDebug));
@@ -136,7 +140,7 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     require(interrupted.pause > entryPoint.pause, 'Pause did not interrupt the non-printing debug loop');
     loopStop.abort();
     require(await loopResult === 'AbortError', 'Stop did not terminate the paused debugger');
-    phase = 'language server';
+    enterPhase('language server');
     const source = 'import packages/dynlex-ui/ui/declarations.dl\nwindow demo:\n    button "Test"\nprint line demo\'s count\n';
     await provider.services.language({ operation: 'project', sources: { 'main.dl': source } }, { signal });
     const language = (method, params, id) => provider.services.language({ operation: 'exchange',
@@ -155,7 +159,7 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     require(tokens.find(message => message.id === 2)?.result?.data?.length > 0,
       'The embedded language server returned no semantic tokens');
     await language('shutdown', null, 3); await language('exit', null);
-    phase = 'shader language profile';
+    enterPhase('shader language profile');
     await provider.services.language({ operation: 'reset' }, { signal });
     const shaderSource = 'import lib/shader.dl\nset the fragment color with a red channel of 0.2, a green channel of 0.4, a blue channel of 0.8 and an alpha channel of 1.0\n';
     await provider.services.language({ operation: 'project', sources: { 'preview.dl': shaderSource } }, { signal });

@@ -5,7 +5,10 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   const {clickText,key}=controls;
   await command('Page.navigate',{url:origin+'/ide/'});
   await waitFor('window.siteProbe?.visible.includes("main.dl")');
-  await clickText('import');
+  await controls.revealText('Run program ▶');
+  await waitFor('window.colorProbe.some(item=>item.text.includes("import"))');
+  const sourcePoint=await evaluate('window.colorProbe.find(item=>item.text.includes("import"))');
+  await controls.click(sourcePoint.x,sourcePoint.y);
   const source="import lib/std.dl\nset items to [4, 5]\nset counter to 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n";
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:source});
@@ -25,10 +28,11 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
   await waitFor('window.siteProbe.visible.includes("Paused value: 1")');
   await capture('debugger-runtime-hover');
-  await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});  const expandItems=async()=>{
-    const row=await evaluate('window.colorProbe.find(item=>item.text.includes("+ items:"))');
-    assert(row,'The current frame must expose its expandable array');
-    await controls.click(row.x,row.y);
+  await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});
+  const expandItems=async()=>{
+    const item=await evaluate(`${latest}.frames.flatMap(frame=>frame.variables).find(item=>item.name==='items')`);
+    assert(item.children>0,'The current frame must expose its expandable array');
+    await clickText('+ items: '+item.type+' = '+item.value);
   };
   await expandItems();
   await waitFor('window.siteProbe.visible.some(text=>text.includes("[0]:") && text.endsWith("= 4")) && window.siteProbe.visible.some(text=>text.includes("[1]:") && text.endsWith("= 5"))');

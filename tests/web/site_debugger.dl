@@ -7,12 +7,7 @@ to get [fixture JSON] {C string:text}:
     return parsed's value
 
 set instance to an instance of Studio debug fixture
-set view to a new UI view
-set driver to a new UI driver
-set driver's wake to (the function named "wake the Studio debugger fixture $") as a pointer
-set driver's close to driver's wake
-set view's driver to the address of driver
-set view's instance to the address of instance
+set view to a UI view of (the address of instance) sized 900 by 900 using font "regular" with the test UI driver
 set state to a new website state
 set state's route to "/ide/index.html"
 set state's services to the browser UI service provider

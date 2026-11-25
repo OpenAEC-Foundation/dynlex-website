@@ -367,7 +367,6 @@ try {
       await fs.writeFile('.cache/farm-browser-trace.json',JSON.stringify({traceEvents}));
     }
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'debugger') {
-    console.log('Worker checks:', await evaluate(`import('/__tests__/workers.mjs').then(module => module.verifyWorkers(new URL(${JSON.stringify(assetBase)},location.href)))`));
     await verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin:`http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
