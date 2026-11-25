@@ -45,5 +45,14 @@ class SourcePackageTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     module.SourcePackage(self.package(directory, {'main.dl': b'x'}, change))
 
+    def test_library_exports_are_bound_to_hashed_metadata(self):
+        descriptor = {'schema': 1, 'name': 'example', 'exports': {'*': 'ui/*'}}
+        files = {'dynlex-package.json': json.dumps(descriptor).encode(), 'ui/main.dl': b'code'}
+        with tempfile.TemporaryDirectory() as directory:
+            package = module.SourcePackage(self.package(directory, files, lambda m: m.update({'exports': {'*': 'ui/*'}})))
+            self.assertEqual(package.manifest['exports'], descriptor['exports'])
+            with self.assertRaisesRegex(ValueError, 'hashed descriptor'):
+                module.SourcePackage(self.package(directory, files, lambda m: m.update({'exports': {'*': 'private/*'}})))
+
 
 unittest.main()

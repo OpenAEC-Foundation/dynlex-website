@@ -142,6 +142,13 @@ try {
   await command('Page.addScriptToEvaluateOnNewDocument', { source: await fs.readFile(new URL('./fixtures/ui-color-probe.js', import.meta.url), 'utf8') });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
     window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0, heroFrames: 0, riverTitle: null };
+    window.siteProbe.projectWrites = [];
+    const storeProject = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key,value) {
+      const result = storeProject.call(this,key,value);
+      if(key==='dynlex-studio-program-project') window.siteProbe.projectWrites.push(value);
+      return result;
+    };
     if (${JSON.stringify(farmProfiling)}) {
       const requestFrame = window.requestAnimationFrame.bind(window);
       window.siteProbe.nativeFrame=requestFrame;

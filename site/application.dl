@@ -10,6 +10,8 @@ import startup.dl
 to get receive website reply {a pointer to JSON value:response} for {integer:job} indexed {integer:index} in {a pointer to website state:state}:
     if job = 25:
         receive the Studio library catalog response in state
+    if job = 26:
+        receive Studio library operation response in state
     if job = 1:
         receive website environment response in state
         return true
@@ -120,6 +122,8 @@ to read website input {a pointer to UI view:view}:
                 set view's instance's status to "An error occurred. Check the log."
                 if pending's purpose = 25:
                     fail the Studio library request in state
+                if pending's purpose = 26:
+                    fail Studio library installation in state
                 if pending's purpose = 4:
                     set (state's shaders + pending's index)'s loading to false
                     set (state's shaders + pending's index)'s failed to true

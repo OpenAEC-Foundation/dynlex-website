@@ -153,6 +153,7 @@ def main():
         shutil.copytree(site / 'assets', stage / 'assets', dirs_exist_ok=True)
         shutil.copytree(site / 'platform', stage / 'platform')
         shutil.copytree(compiler_root / 'src/web/compiler', stage / 'compiler')
+        shutil.copytree(compiler_root / 'packages', stage / 'compiler/packages', ignore=shutil.ignore_patterns('tests', '*.d.mts'))
         compiler = compiler_root / 'src/web/ide/public/compiler'
         for name in ['dynlex_web.js', 'dynlex_web.wasm', 'dynlex_wgsl_translator.wasm']:
             shutil.copy2(compiler / name, stage / 'compiler' / name)
@@ -171,6 +172,21 @@ def main():
         libraries = {path.relative_to(compiler_root).as_posix(): path.read_text()
                      for path in (compiler_root / 'lib').rglob('*.dl')}
         (stage / 'assets/studio-library.json').write_text(json.dumps(libraries | dependencies) + '\n')
+        library_catalog = []
+        for name in project['dependencies']:
+            package = dependency(name)
+            manifest = package.manifest
+            if 'exports' not in manifest:
+                continue
+            filename = f"{name}/{manifest['contentHash']}.zip"
+            target = stage / 'libraries' / filename
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(site / project['dependencies'][name]['archive'], target)
+            library_catalog.append({'name': name, 'alias': manifest['importName'], 'title': manifest['title'],
+                                    'description': manifest['description'], 'publisher': manifest['publisher'],
+                                    'documentation': manifest['documentation'],
+                                    'source': {'url': filename, 'contentHash': manifest['contentHash']}})
+        (stage / 'libraries/index.json').write_text(json.dumps({'schema': 1, 'libraries': library_catalog}, indent=2) + '\n')
         shutil.copy2(compiler_root / 'scripts/install_release.sh', stage / 'install.sh')
         (stage / 'install.sh').chmod(0o755)
         shutil.copytree(compiler_root / 'resources/branding', stage / 'assets/branding', dirs_exist_ok=True)
