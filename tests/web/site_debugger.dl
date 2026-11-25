@@ -1,6 +1,11 @@
 import ../../site/packages/dynlex-ide/studio/debug_interaction.dl
 import studio_debug_fixture.dl
 
+to get [fixture JSON] {C string:text}:
+    parse text as JSON and set parsed to it
+    require condition (parsed succeeded) reporting "Invalid controller fixture JSON"
+    return parsed's value
+
 set instance to an instance of Studio debug fixture
 set view to a new UI view
 set driver to a new UI driver
@@ -23,34 +28,16 @@ set compiled to a JSON object containing [JSON number "status" is 0, JSON number
 receive website compilation compiled for 2 in (the address of state)
 free compiled
 set editor to the UI source editor labeled "IDE source" in (state's language)
-set symbol to a JSON object containing [
-    JSON text "uri" is (editor's document's uri),
-    JSON child "range" is (a JSON object containing [
-        JSON child "start" is (an LSP position at line 0 and character 4),
-        JSON child "end" is (an LSP position at line 0 and character 11)])]
-set counter to a copy of JSON-RPC node symbol
-set JSON member (JSON text "name" is "counter") in counter
-set JSON member (JSON text "type" is "integer") in counter
-set JSON member (JSON text "value" is "1") in counter
-set JSON member (JSON number "reference" is 0) in counter
-set JSON member (JSON number "children" is 0) in counter
-set collection to a JSON object containing [JSON text "name" is "items", JSON text "type" is "array", JSON text "value" is "array [2]", JSON number "reference" is 7, JSON number "children" is 2]
-set frame to a JSON object containing [
-    JSON text "name" is "main", JSON text "uri" is (editor's document's uri),
-    JSON child "range" is (a JSON object containing [JSON child "start" is (an LSP position at line 1 and character 0), JSON child "end" is (an LSP position at line 1 and character 18)]),
-    JSON child "variables" is (a JSON array containing [counter, collection])]
-set paused to a JSON object containing [JSON text "type" is "program-paused", JSON text "reason" is "step", JSON number "invocation" is 1, JSON number "pause" is 1, JSON child "frames" is (a JSON array containing [frame])]
+set paused to fixture JSON "{\"type\":\"program-paused\",\"reason\":\"step\",\"invocation\":1,\"pause\":1,\"frames\":[{\"name\":\"main\",\"uri\":\"file:///workspace/main.dl\",\"range\":{\"start\":{\"line\":1,\"character\":0},\"end\":{\"line\":1,\"character\":18}},\"variables\":[{\"uri\":\"file:///workspace/main.dl\",\"range\":{\"start\":{\"line\":0,\"character\":4},\"end\":{\"line\":0,\"character\":11}},\"name\":\"counter\",\"type\":\"integer\",\"value\":\"1\",\"reference\":0,\"children\":0},{\"name\":\"items\",\"type\":\"array\",\"value\":\"array [2]\",\"reference\":7,\"children\":2}]}]}"
 receive Studio debug notification paused in (the address of state)
 free paused
 require condition (state's studio debug's paused) reporting "The debugger did not publish its pause"
 require condition (state's language's tools' runtime values != (0 as a pointer to JSON value)) reporting "Paused values were not connected to hover"
-set hover to a JSON object containing [JSON text "contents" is "integer = 9", JSON child "dynlexVariable" is symbol]
+set hover to fixture JSON "{\"contents\":\"integer = 9\",\"dynlexVariable\":{\"uri\":\"file:///workspace/main.dl\",\"range\":{\"start\":{\"line\":0,\"character\":4},\"end\":{\"line\":0,\"character\":11}}}}"
 require condition ((the UI paused hover text of hover using (state's language's tools' runtime values)) = "counter: integer\nPaused value: 1") reporting "Hover showed an inferred value instead of the selected frame's value"
 free hover
 request Studio debug variables 7 starting at 0 in (the address of state)
-set reply to a JSON object containing [JSON number "reference" is 7, JSON child "variables" is (a JSON array containing [
-    a JSON object containing [JSON text "name" is "[0]", JSON text "type" is "integer", JSON text "value" is "4", JSON number "reference" is 0, JSON number "children" is 0],
-    a JSON object containing [JSON text "name" is "[1]", JSON text "type" is "integer", JSON text "value" is "5", JSON number "reference" is 0, JSON number "children" is 0]])]
+set reply to fixture JSON "{\"reference\":7,\"variables\":[{\"name\":\"[0]\",\"type\":\"integer\",\"value\":\"4\",\"reference\":0,\"children\":0},{\"name\":\"[1]\",\"type\":\"integer\",\"value\":\"5\",\"reference\":0,\"children\":0}]}"
 receive Studio debug variables reply for pause 1 in (the address of state)
 free reply
 require condition (state's studio debug's rows' length = 4) reporting "Variable expansion did not retain its child rows"

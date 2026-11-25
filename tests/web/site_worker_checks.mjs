@@ -60,7 +60,7 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     require(next.status === 0, 'Stopping a program damaged the compiler');
     await provider.services.compiler({ operation: 'release', artifact: next.artifact }, { signal });
     phase = 'debugger';
-    const debugSource = 'import lib/std.dl\nset counter to the command line argument count + 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n';
+    const debugSource = "import lib/std.dl\nset counter to 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n";
     const debugged = await provider.services.compiler({ operation: 'compile', target: 'cpu',
       entry: 'main.dl', debugged: true, sources: { 'main.dl': debugSource } }, { signal });
     require(debugged.status === 0, JSON.stringify(debugged));

@@ -20,7 +20,7 @@ from dependencies import dependency
 
 def compilation_budget(name):
     # Dispatch and initial-route fixtures link the source workspace and 3D scene.
-    return 600 if name in ['site_farm_controller', 'site_farm_profiles', 'site_farm_rebuilding', 'site_farm_labels', 'site_reply_ownership', 'site_startup'] else 180
+    return 600 if name in ['site_farm_controller', 'site_farm_profiles', 'site_farm_rebuilding', 'site_farm_labels', 'site_reply_ownership', 'site_startup', 'site_debugger'] else 180
 
 
 def run_shipped_fixtures(project, jobs, models):

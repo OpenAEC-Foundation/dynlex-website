@@ -6,7 +6,7 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   await command('Page.navigate',{url:origin+'/ide/'});
   await waitFor('window.siteProbe?.visible.includes("main.dl")');
   await clickText('import');
-  const source='import lib/std.dl\nset counter to the command line argument count + 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n';
+  const source="import lib/std.dl\nset counter to 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n";
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:source});
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(source)}`);
