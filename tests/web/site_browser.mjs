@@ -375,6 +375,13 @@ try {
     await verifyFarmPage({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmRestore({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmWeather({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
+  } else if(process.env.DYNLEX_SITE_SCENARIO==='context-recovery') {
+    await waitFor('window.siteProbe.heroFrames>0');
+    await verifyContextLoss({evaluate,waitFor,capture,graphicsMode});
+    const presentations=await evaluate('window.siteProbe.presentations');
+    await click(1115,22);
+    await waitFor('location.pathname==="/wiki/index.html" && document.title==="DynLex Wiki"');
+    await waitFor(`window.siteProbe.presentations>${presentations}`);
   } else {
   await verifyHomeShader({command,evaluate,waitFor});
   await verifyResponsiveHome({command,evaluate,waitFor});
