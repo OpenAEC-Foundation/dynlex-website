@@ -19,6 +19,7 @@ import {verifyFarmWeather} from './site_farm_weather_checks.mjs';
 import {verifyIdeTheme} from './site_theme_checks.mjs';
 import {verifyRiverInspection} from './site_river_inspection_checks.mjs';
 import {verifyHomeShader, verifyMobileSwipe, verifyResponsiveHome} from './site_home_interaction_checks.mjs';
+import {verifyContextLoss} from './site_context_loss_checks.mjs';
 
 const directory = path.resolve(process.argv[2] || 'build/site');
 const graphicsMode = process.argv[3] || 'system';
@@ -165,6 +166,7 @@ try {
     WebAssembly.instantiate = function(bytes, imports, ...args) {
       const env = imports?.env;
       if (env?.ui_text_mask) {
+        window.siteProbe.applicationInstances=(window.siteProbe.applicationInstances??0)+1;
         const begin = env.ui_begin, mask = env.ui_text_mask;
         const decoder = new TextDecoder();
         const registered = ${JSON.stringify(fonts)}, openFont = env.ui_open_font, faces = new Map();
@@ -556,6 +558,7 @@ try {
   }
   assert.equal(errors.length,0,JSON.stringify(errors));
   }
+  await verifyContextLoss({evaluate,waitFor,capture,graphicsMode});
   assert.equal(errors.length,0,JSON.stringify(errors));
   console.log('Site background preview passed.');
 } finally {
