@@ -12,10 +12,11 @@ export async function verifyContextLoss({evaluate,waitFor,capture,graphicsMode})
   assert(await evaluate('contextLossProbe.event.defaultPrevented'),'The website did not enable WebGL restoration');
   assert(await evaluate('document.querySelector("canvas")===contextLossProbe.canvas'),'Context loss removed the website');
   const paints=await evaluate('window.siteProbe.paints');
+  const presentations=await evaluate('window.siteProbe.presentations');
   await pause(100);
   assert.equal(await evaluate('window.siteProbe.paints'),paints,'The suspended website kept submitting GPU work');
   await evaluate('contextLossProbe.extension.restoreContext()');
-  await waitFor(`window.siteProbe.paints>${paints}`);
+  await waitFor(`window.siteProbe.presentations>${presentations}`);
   assert(await evaluate('document.querySelector("canvas")===contextLossProbe.canvas'),'Restoration replaced the application canvas');
   assert.deepEqual(await evaluate('({route:location.pathname+location.search,title:document.title,instances:window.siteProbe.applicationInstances})'),before,
     'Restoration restarted the application or changed its navigation state');

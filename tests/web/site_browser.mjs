@@ -167,6 +167,8 @@ try {
       const env = imports?.env;
       if (env?.ui_text_mask) {
         window.siteProbe.applicationInstances=(window.siteProbe.applicationInstances??0)+1;
+        const present=env.ui_present;
+        env.ui_present=(...args)=>{const result=present(...args);window.siteProbe.presentations=(window.siteProbe.presentations??0)+1;return result;};
         const begin = env.ui_begin, mask = env.ui_text_mask;
         const decoder = new TextDecoder();
         const registered = ${JSON.stringify(fonts)}, openFont = env.ui_open_font, faces = new Map();
