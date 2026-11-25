@@ -91,6 +91,30 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     require(point.reason === 'breakpoint' && value(point, 'counter') === '9', 'The worker missed its breakpoint');
     await debug(point, 'continue'); await debugRun;
     require(debugOutput.join('') === '2\n9\n', 'Debugging lost program output');
+    phase = 'step into a pure literal call';
+    const pure = await provider.services.compiler({ operation: 'compile', target: 'cpu', entry: 'main.dl', debugged: true,
+      sources: { 'main.dl': 'import lib/std.dl\nto get increased number:\n    return number + 1\nset answer to increased 7\nprint line answer\n' } }, { signal });
+    require(pure.status === 0, JSON.stringify(pure));
+    const pureEvents = [], pureWaiting = [], pureOutput = [];
+    const pureRunning = provider.services.program({ artifact: pure.artifact, invocation: 6, outputLimit: 1024 },
+      { signal, emit(event) {
+        if (event.type === 'program-output') pureOutput.push(event.output);
+        if (event.type === 'program-paused') {
+          if (pureWaiting.length) pureWaiting.shift()(event); else pureEvents.push(event);
+        }
+      } });
+    const purePause = () => pureEvents.length ? Promise.resolve(pureEvents.shift()) : Promise.race([
+      new Promise(resolve => pureWaiting.push(resolve)), pureRunning.then(() => { throw new Error('Pure call ended before pausing'); })]);
+    let purePoint = await purePause();
+    await provider.services.debugger({ invocation: 6, command: 'into', pause: purePoint.pause }, { signal });
+    purePoint = await purePause();
+    require(purePoint.frames.length === 2 && value(purePoint, 'number') === '7', 'The shipped compiler folded a debuggable literal call');
+    await provider.services.debugger({ invocation: 6, command: 'out', pause: purePoint.pause }, { signal });
+    purePoint = await purePause();
+    require(value(purePoint, 'answer') === '8', 'The pure call changed its result');
+    await provider.services.debugger({ invocation: 6, command: 'continue', pause: purePoint.pause }, { signal });
+    await pureRunning;
+    require(pureOutput.join('') === '8\n', 'The pure call lost its output');
     phase = 'pause a running debug loop';
     const loopDebug = await provider.services.compiler({ operation: 'compile', target: 'cpu', entry: 'main.dl',
       debugged: true, sources: { 'main.dl': 'import lib/std.dl\nloop while true:\n    ignore 1\n' } }, { signal });

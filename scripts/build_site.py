@@ -87,6 +87,12 @@ def main():
     parser.add_argument('--base', type=asset_base, default=os.environ.get('DYNLEX_WEB_BASE', '/'))
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
+    # Check the platform bundler before spending time compiling the application.
+    try:
+        subprocess.run(['node', '--input-type=module', '-e',
+                        "import {transformSync} from 'esbuild'; transformSync('');"], cwd=root, check=True)
+    except subprocess.CalledProcessError as error:
+        raise SystemExit('Website build tools are unavailable. Run npm ci in the website checkout.') from error
     site = root / 'site'
     output = args.output.resolve()
     project = json.loads((site / 'project.json').read_text())

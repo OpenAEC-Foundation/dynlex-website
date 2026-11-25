@@ -268,6 +268,8 @@ try {
     const BrowserWorker = window.Worker;
     window.Worker = class extends BrowserWorker {
       postMessage(message, ...args) {
+        if(message.type==='debug' && message.payload.command==='variables' && window.siteProbe.holdInspectorReply)
+          this.delayedInspections.add(message.id);
         if (message.type === 'compile') window.siteProbe.compilations.push(message.payload.entry);
         // A traced loop reaches the output cap first. Compile this synthetic
         // non-printing program without tracing to exercise the real UI deadline.
@@ -279,7 +281,16 @@ try {
       }
       constructor(...args) {
         super(...args);
-        this.addEventListener('message', ({ data }) => {
+        this.delayedInspections=new Set();
+        this.addEventListener('message', event => {
+          const {data}=event;
+          if(this.delayedInspections.delete(data.id)) {
+            event.stopImmediatePropagation();
+            window.siteProbe.delayedInspections=(window.siteProbe.delayedInspections??0)+1;
+            setTimeout(()=>this.dispatchEvent(new MessageEvent('message',{data})),500);
+            return;
+          }
+
           if (data.event?.type==='program-paused' || data.event?.type==='program-resumed') window.siteProbe.debugEvents.push(data.event);
           if (data.event?.output) window.siteProbe.programOutput += data.event.output;
           if (data.result?.status !== undefined) window.siteProbe.builds.push({
