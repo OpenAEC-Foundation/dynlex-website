@@ -367,7 +367,7 @@ try {
       await fs.writeFile('.cache/farm-browser-trace.json',JSON.stringify({traceEvents}));
     }
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'debugger') {
-    await verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin:`http://127.0.0.1:${server.address().port}`});
+    await verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
