@@ -59,6 +59,59 @@ export async function verifyWorkers(base = new URL('/', location.href)) {
     const next = await compile('import lib/std.dl\nprint line 7\n');
     require(next.status === 0, 'Stopping a program damaged the compiler');
     await provider.services.compiler({ operation: 'release', artifact: next.artifact }, { signal });
+    phase = 'debugger';
+    const debugSource = 'import lib/std.dl\nset counter to the command line argument count + 1\nreport counter\nset counter to 9\nprint line counter\n\nto report {integer:number}:\n    set increased to number + 1\n    print line increased\n';
+    const debugged = await provider.services.compiler({ operation: 'compile', target: 'cpu',
+      entry: 'main.dl', debugged: true, sources: { 'main.dl': debugSource } }, { signal });
+    require(debugged.status === 0, JSON.stringify(debugged));
+    const pauses = [], waiters = [], debugOutput = [];
+    const debugRun = provider.services.program({ artifact: debugged.artifact, invocation: 4, outputLimit: 1024 },
+      { signal, emit(event) {
+        if (event.type === 'program-output') debugOutput.push(event.output);
+        if (event.type === 'program-paused') {
+          if (waiters.length) waiters.shift()(event); else pauses.push(event);
+        }
+      } });
+    const paused = () => pauses.length ? Promise.resolve(pauses.shift()) :
+      Promise.race([new Promise(resolve => waiters.push(resolve)), debugRun.then(() => { throw new Error('Debugging ended before its pause'); })]);
+    const debug = (point, command) => provider.services.debugger({ invocation: 4, pause: point.pause, command }, { signal });
+    const value = (point, name, frame = 0) => point.frames[frame].variables.find(variable => variable.name === name)?.value;
+    let point = await paused();
+    require(value(point, 'counter') === '<uninitialized>', 'The worker read an uninitialized value');
+    await debug(point, 'over'); point = await paused();
+    require(value(point, 'counter') === '1', 'Step over did not publish the stored runtime value');
+    await debug(point, 'into'); point = await paused();
+    require(point.frames.length === 2 && value(point, 'number') === '1' && value(point, 'counter', 1) === '1',
+      'Step into lost arguments or the caller frame');
+    await debug(point, 'out'); point = await paused();
+    require(point.frames.length === 1 && debugOutput.join('') === '2\n', 'Step out did not return to its caller');
+    await provider.services.debugger({ invocation: 4, command: 'breakpoints',
+      breakpoints: [{ uri: point.frames[0].uri, line: 4 }] }, { signal });
+    await debug(point, 'continue'); point = await paused();
+    require(point.reason === 'breakpoint' && value(point, 'counter') === '9', 'The worker missed its breakpoint');
+    await debug(point, 'continue'); await debugRun;
+    require(debugOutput.join('') === '2\n9\n', 'Debugging lost program output');
+    phase = 'pause a running debug loop';
+    const loopDebug = await provider.services.compiler({ operation: 'compile', target: 'cpu', entry: 'main.dl',
+      debugged: true, sources: { 'main.dl': 'import lib/std.dl\nloop while true:\n    ignore 1\n' } }, { signal });
+    require(loopDebug.status === 0, JSON.stringify(loopDebug));
+    const loopStop = new AbortController(), loopPauses = [], loopWaiters = [];
+    const loopRunning = provider.services.program({ artifact: loopDebug.artifact, invocation: 5, outputLimit: 1024 },
+      { signal: loopStop.signal, emit(event) {
+        if (event.type === 'program-paused') {
+          if (loopWaiters.length) loopWaiters.shift()(event); else loopPauses.push(event);
+        }
+      } });
+    const loopResult = loopRunning.then(() => 'completed', error => error.name);
+    const loopPause = () => loopPauses.length ? Promise.resolve(loopPauses.shift()) : new Promise(resolve => loopWaiters.push(resolve));
+    const entryPoint = await loopPause();
+    await provider.services.debugger({ invocation: 5, command: 'continue', pause: entryPoint.pause }, { signal });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await provider.services.debugger({ invocation: 5, command: 'pause' }, { signal });
+    const interrupted = await loopPause();
+    require(interrupted.pause > entryPoint.pause, 'Pause did not interrupt the non-printing debug loop');
+    loopStop.abort();
+    require(await loopResult === 'AbortError', 'Stop did not terminate the paused debugger');
     phase = 'language server';
     const source = 'import packages/dynlex-ui/ui/declarations.dl\nwindow demo:\n    button "Test"\nprint line demo\'s count\n';
     await provider.services.language({ operation: 'project', sources: { 'main.dl': source } }, { signal });

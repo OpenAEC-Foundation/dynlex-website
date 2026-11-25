@@ -43,6 +43,7 @@ class:
         editor entry as a string
         editor light as a boolean
         studio files as Studio file browser
+        studio debug as Studio debug session
         shader editor as website shader editor
         river as website river playback
         river inspection as website river inspection session

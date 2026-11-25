@@ -163,7 +163,7 @@ export async function verifySourceInspection({command,evaluate,waitFor,key,captu
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:program});
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
-  await key('F9','F9',120);
+  await key('KeyO','o',79,10);
   await waitFor(`window.siteProbe.visible.includes(${JSON.stringify(outline)}) && !window.siteProbe.visible.includes('Finding sections…')`);
   await capture(name+'-outline');
   await key('Home','Home',36);

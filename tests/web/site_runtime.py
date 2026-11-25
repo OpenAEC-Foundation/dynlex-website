@@ -110,6 +110,7 @@ def main():
                         help='Select a compiler frontend for preflight checks (default: both).')
     cases = ['site_program_commands', 'site_controllers', 'site_language', 'site_entry', 'site_shader', 'site_shader_loading', 'site_shader_buffers', 'site_program_events', 'site_river_controller', 'site_river_audio', 'site_progress_controller', 'site_account_profiles', 'site_account_controller', 'site_account_recovery', 'site_reply_ownership']
     cases.append('site_program_deadlines')
+    cases.append('site_debugger')
     cases.append('site_startup')
     cases.append('site_theme_controller')
     cases.append('site_farm_controller')
@@ -144,6 +145,7 @@ def main():
         fixture.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'tests/web/site_fixture.dl', fixture)
         shutil.copyfile(ROOT / 'tests/web/site_account_support.dl', fixture.with_name('site_account_support.dl'))
+        shutil.copyfile(ROOT / 'tests/web/studio_debug_fixture.dl', fixture.with_name('studio_debug_fixture.dl'))
         for name in selected:
             source = project / f'tests/web/{name}.dl'
             source.parent.mkdir(parents=True, exist_ok=True)

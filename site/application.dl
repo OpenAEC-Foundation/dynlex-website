@@ -8,6 +8,8 @@ import startup.dl
 
 # Replies have explicit owners and purposes. Platform services do not decide UI state.
 to get receive website reply {a pointer to JSON value:response} for {integer:job} indexed {integer:index} in {a pointer to website state:state}:
+    if job = 27:
+        receive Studio debug variables response for pause index in state
     if job = 25:
         receive the Studio library catalog response in state
     if job = 1:
@@ -96,6 +98,8 @@ to read website input {a pointer to UI view:view}:
             receive website program output document in state
         else if kind = "program-started":
             receive website execution start document in state
+        else if (kind = "program-paused") or (kind = "program-resumed"):
+            receive Studio debug notification document in state
         else if (kind = "firebase-auth") or (kind = "connectivity"):
             receive website account notification document in state
         else:
@@ -128,6 +132,13 @@ to read website input {a pointer to UI view:view}:
                     set the text of "Release status" in (view's instance) to "An error occurred. Check the log."
                 if (pending's purpose = 6) or (pending's purpose = 7):
                     fail website program (pending's index) in state
+                if pending's purpose = 26:
+                    if state's studio debug's active:
+                        stop website program 2 in state
+                        set the text of "IDE status" in (view's instance) to "An error occurred. Check the log."
+                if pending's purpose = 27:
+                    set state's studio debug's query to 0
+                    set the text of "IDE status" in (view's instance) to "An error occurred. Check the log."
                 if pending's purpose = 8:
                     fail UI source workspace (state's language)
                     present website source colors in state
@@ -165,6 +176,7 @@ to close the website {a pointer to UI view:view}:
     free state's account's configuration
     free state's account's revision
     close the Studio file browser in state
+    close Studio debugging in state
     free UI source workspace (state's language)
     close view
     close instance

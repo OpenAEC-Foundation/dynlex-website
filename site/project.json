@@ -7,11 +7,11 @@
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
-      "contentHash": "2cc18fb717b73c6fcc2bd2aef72ffbb8ed789e25dc0b3eef529c197a38b3dd49"
+      "contentHash": "4d38ed02ecbfae9a41316e202408b1dd8f007f40e6598010acf3f26febcf0756"
     },
     "dynlex-ide": {
       "archive": "dependencies/dynlex-ide.zip",
-      "contentHash": "a227bb3e55a4a09d67277af65f54ac0c31b287cc081a3cb8945babf6b3dea1ab"
+      "contentHash": "4775dbc6825257c67b154e3be1532df8845298aef1e9f94d83d9ef028bb41e4c"
     }
   },
   "fonts": [

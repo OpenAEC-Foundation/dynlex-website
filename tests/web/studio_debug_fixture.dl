@@ -1,0 +1,46 @@
+# Only controls used by the debugger controller; the full page is tested in Chrome.
+import lib/std.dl
+import ../../site/packages/dynlex-ui/ui/declarations.dl
+import ../../site/packages/dynlex-ide/editor/source_panes.dl
+import ../../site/packages/dynlex-ui/platform/browser/requests.dl
+import ../../site/packages/dynlex-ui/ui/document_layout.dl
+
+document Studio debug fixture:
+    tab group "IDE modes" using no UI appearance:
+        tab "Program":
+            source pane "IDE source" containing "" using no UI appearance
+    paragraph "Compilation measurement" containing "" using no UI appearance
+    paragraph "IDE output" containing "" using no UI appearance
+    paragraph "IDE status" containing "" using no UI appearance
+    button "Debug program"
+    button "Continue debugging"
+    button "Pause debugging"
+    button "Step over"
+    button "Step into"
+    button "Step out"
+    button "Toggle breakpoint"
+    button "Clear breakpoints"
+    read only text surface "Debug stack" containing "" using no UI appearance
+    read only text surface "Debug variables" containing "" using no UI appearance
+    read only text surface "Debug breakpoints" containing "" using no UI appearance
+    read only text surface "Project files" containing "" using no UI appearance
+    text field "File path" containing "" using no UI appearance
+    button "Rename file"
+    button "Delete file"
+    paragraph "File status" containing "" using no UI appearance
+
+to [wake the Studio debugger fixture] {a pointer to UI view:view}:
+    ignore view
+
+to [prepare the Studio debugger fixture in] {a pointer to website state:state}:
+    set view to state's view
+    set view's layout to a document UI layout for (view's instance's description) inside (view's instance's description)
+    set state's language to a UI source workspace in (view's instance) rooted at "file:///workspace"
+    enable UI source tools for (state's language) in view
+    configure the website source editor "IDE source" named "main.dl" prefixed by "" using UI CPU analysis in state
+    attach the Studio file browser in state
+
+to [release the Studio debugger fixture in] {a pointer to website state:state}:
+    close the Studio file browser in state
+    free UI source workspace (state's language)
+    close state's view

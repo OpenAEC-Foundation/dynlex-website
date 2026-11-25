@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { recordWebsiteProgram } from './recording_runtime.mjs';
+const result = await recordWebsiteProgram(process.argv[2], { cancelRequest: () => true });
+assert.equal(result.output, 'Studio debugs its snapshot, displays live hover values, expands variables and clears paused state on resume and Stop.\n');
+assert.equal(result.requests[0].service, 'compiler');
+assert.equal(result.requests[0].payload.debugged, true);
+assert.equal(result.requests[1].service, 'program');
+assert.deepEqual(result.requests[1].payload.breakpoints, [{ uri: 'file:///workspace/main.dl', line: 0 }]);
+assert(result.requests.some(request => request.service === 'debugger' && request.payload.command === 'variables'));
+assert(result.requests.some(request => request.service === 'debugger' && request.payload.command === 'over'));
+assert.equal(result.cancelled.length, 3, 'Resume must cancel the inspection and Stop must cancel execution and its pending command');
+console.log('Studio debugger controller, live hovers, variable inspection and cancellation passed.');

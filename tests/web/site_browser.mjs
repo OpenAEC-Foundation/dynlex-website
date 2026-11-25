@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {verifyStudioDebugger} from './studio_debugger_checks.mjs';
 import {verifyStudioProject} from './studio_project_checks.mjs';
 import {browserRelease as release} from './release_fixture.mjs';
 import {compilerPath} from '../../scripts/dependencies.mjs';
@@ -141,7 +142,7 @@ try {
   });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: await fs.readFile(new URL('./fixtures/ui-color-probe.js', import.meta.url), 'utf8') });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
-    window.siteProbe = { paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0, heroFrames: 0, riverTitle: null };
+    window.siteProbe = { debugEvents: [], paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0, heroFrames: 0, riverTitle: null };
     if (${JSON.stringify(farmProfiling)}) {
       const requestFrame = window.requestAnimationFrame.bind(window);
       window.siteProbe.nativeFrame=requestFrame;
@@ -275,6 +276,7 @@ try {
       constructor(...args) {
         super(...args);
         this.addEventListener('message', ({ data }) => {
+          if (data.event?.type==='program-paused' || data.event?.type==='program-resumed') window.siteProbe.debugEvents.push(data.event);
           if (data.event?.output) window.siteProbe.programOutput += data.event.output;
           if (data.result?.status !== undefined) window.siteProbe.builds.push({
             status: data.result.status, stages: Object.keys(data.result.stages || {})
@@ -349,6 +351,9 @@ try {
       assert(traceComplete,'Chrome did not finish the requested trace');
       await fs.writeFile('.cache/farm-browser-trace.json',JSON.stringify({traceEvents}));
     }
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'debugger') {
+    console.log('Worker checks:', await evaluate(`import('/__tests__/workers.mjs').then(module => module.verifyWorkers(new URL(${JSON.stringify(assetBase)},location.href)))`));
+    await verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin:`http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
