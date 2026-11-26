@@ -40,6 +40,9 @@ to apply location {a pointer to JSON value:location} to {a pointer to website st
     request "document" containing (a JSON object containing [JSON text "action" is "metadata", JSON text "title" is (selected's title), JSON text "description" is (selected's description), JSON text "path" is (selected's path)]) for purpose 0 indexed 0 in state
     set view to state's view
     apply website appearance for path in state
+    set chrome to ((-1) if path = "/ide/index.html", else 0)
+    set the value of "Site navigation visibility" in (view's instance) to chrome
+    set the value of "Site footer visibility" in (view's instance) to chrome
     reflow the UI document in view
     set fragment to the JSON text named "hash" in location
     if fragment's length > 0:

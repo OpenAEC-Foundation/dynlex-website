@@ -20,7 +20,7 @@ class:
 the website program descriptions means: [
     @intrinsic("construct", website program description, "Square field", "Square field output", "Square field status", "", "main.dl", false, true, "Run square field ▶", "action:run-square", "action:stop-square", 0, 0),
     @intrinsic("construct", website program description, "Vocabulary", "Vocabulary output", "Vocabulary status", "", "main.dl", false, true, "Run vocabulary ▶", "action:run-vocabulary", "action:stop-vocabulary", 0, 0),
-    @intrinsic("construct", website program description, "IDE modes", "IDE output", "IDE status", "", "main.dl", false, true, "Run program ▶", "action:run-ide", "action:stop-ide", 0, 0),
+    @intrinsic("construct", website program description, "IDE modes", "IDE output", "IDE status", "", "main.dl", false, true, "Run program", "action:run-ide", "action:stop-ide", 0, 0),
     @intrinsic("construct", website program description, "Studio source", "Studio output", "Studio status", "", "main.dl", false, true, "Run studio sketch ▶", "action:run-studio", "action:stop-studio", 0, 0),
     @intrinsic("construct", website program description, "River source", "River diagnostics", "River status", "import site/language/river_challenge.dl\n\n", "river.dl", true, false, "Run plan ▶", "action:run-river", "action:stop-river", 0, 0),
     @intrinsic("construct", website program description, "Farm source", "Farm diagnostics", "Farm status", "import site/language/farm_challenge.dl\n\n", "farm.dl", true, false, "Give this role to Ada", "action:farm-apply", "action:farm-stop", 5000, 30000)

@@ -27,7 +27,7 @@ function check website theme scenario {integer:scenario}:
         else:
             require condition ((the value of "Studio appearance notice" in window) = -1) reporting "A successful theme load retained an error notice"
         set style to UI appearance ((the control labeled "IDE source" in window)'s appearance) resolved for 1280.0 using (instance's palette)
-        require condition (style's background's red = (250 if state's editor light, else 42)) reporting "The editor background ignored its selected theme"
+        require condition (style's background's red = (255 if state's editor light, else 22)) reporting "The editor background ignored its selected theme"
         if scenario = 0:
             set node to the control labeled "IDE source" in window
             set value to the UI value for node in window
@@ -49,12 +49,12 @@ function check website theme scenario {integer:scenario}:
             increment document's token generation
             toggle website editor theme in (the address of state)
             present website source colors in (the address of state)
-            require condition ((state's editor light) and (view's theme's background's red = 250)) reporting "Switching to light did not update the complete workbench"
+            require condition ((state's editor light) and (view's theme's background's red = 242)) reporting "Switching to light did not update the complete workbench"
             require condition (value's colors' ink's red = 48) reporting "The IDE light theme did not use shared source colors"
             require condition ((value's text = "f") and (value's undo = history)) reporting "Changing theme replaced a draft or its undo history"
             toggle website editor theme in (the address of state)
             present website source colors in (the address of state)
-            require condition ((state's editor light = false) and (view's theme's background's red = 24)) reporting "Switching to dark did not update the complete workbench"
+            require condition ((state's editor light = false) and (view's theme's background's red = 20)) reporting "Switching to dark did not update the complete workbench"
             require condition (value's colors' ink's red = 184) reporting "The IDE retained light semantic colors after switching back"
             require condition (value's undo = history) reporting "A second theme switch replaced undo history"
             apply website appearance for (the string form of "/index.html") in (the address of state)

@@ -1,5 +1,6 @@
 // Exercise the project through rendered controls and ordinary keyboard/pointer input.
 import assert from 'node:assert/strict';
+import {studioMenu,studioToolbar,sourceToolbar} from './studio_controls.mjs';
 
 export async function verifyStudioProject({command,evaluate,waitFor,controls,capture,origin}) {
   const {click,clickText,key}=controls;
@@ -11,10 +12,7 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
     await waitFor(`document.querySelector('textarea').value===${JSON.stringify(text)}`);
   };
   const editPath=async (oldPath,path)=>{
-    await clickText('File path');
-    const field=await evaluate(`window.colorProbe.filter(item=>item.text.trim()===${JSON.stringify(oldPath)} && item.y>window.colorProbe.find(item=>item.text.trim()==='File path').y).at(0)`);
-    assert(field,'The file path input must be visible below its label');
-    await click(field.x,field.y);
+    await waitFor(`document.activeElement===document.querySelector('textarea') && document.querySelector('textarea').value===${JSON.stringify(oldPath)}`);
     await replace(path);
   };
   const ctrlClick=async token=>{
@@ -24,17 +22,24 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   };
   const helper='tools/math/double.dl',renamed='tools/math/twice.dl';
   const contents='{number} doubled means: @intrinsic("add", number, number)';
-  await editPath('main.dl',helper);
-  await clickText('New file');
+  await studioMenu(controls,'File','New file');
+  await editPath('',helper);
+  await key('Enter','Enter',13);
   await waitFor("document.querySelector('textarea').value===''");
   await replace(contents);
+  await studioMenu(controls,'File','Rename file');
   await editPath(helper,renamed);
-  await clickText('Rename file');
-  await clickText('Main file');
+  await key('Enter','Enter',13);
+  await waitFor(`window.colorProbe.some(item=>item.text.trim()===${JSON.stringify(renamed)})`);
+  await sourceToolbar({controls,command,evaluate,waitFor},renamed,'Main file');
   const program='import std.dl\nimport '+renamed+'\nprint line (21 doubled)';
   await replace(program);
-  await clickText('Run program ▶');
+  await studioToolbar({controls,evaluate},'Run');
   await waitFor('window.siteProbe.texts.some(item=>item.trim()==="42")');
+  await studioMenu(controls,'Run','Copy output');
+  await waitFor('window.siteProbe.copiedText==="42\\n"');
+  await studioMenu(controls,'Run','Clear output');
+  await waitFor('!window.colorProbe.some(item=>item.text.trim()==="42")');
   await ctrlClick('std.dl');
   await waitFor('window.siteProbe.visible.includes("std.dl · Read only")');
   await key('ArrowLeft','ArrowLeft',37,1);
@@ -53,19 +58,19 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   await clickText('twice.dl');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await capture('nested-project-file');
-  await clickText('Main file');
+  await sourceToolbar({controls,command,evaluate,waitFor},renamed,'Main file');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   await key('End','End',35,2);
   for(let i=0;i<3;i++) await key('ArrowLeft','ArrowLeft',37);
-  await clickText('Definition');
+  await sourceToolbar({controls,command,evaluate,waitFor},'main.dl','Definition');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await key('ArrowLeft','ArrowLeft',37,1);
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   await key('Home','Home',36,2);
   await ctrlClick('doubled');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
+  await studioMenu(controls,'File','Delete file');
   await clickText('Delete file');
-  await clickText('Confirm delete');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   await clickText('▸ Libraries');
   await clickText('▸ lib');

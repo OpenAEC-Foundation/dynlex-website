@@ -12,16 +12,17 @@ document dynlex website using page appearance:
     code:
         use UI palette (the website colors for false) in this window
         set the value of "Studio appearance notice" in this window to -1
-    region "Site header" using header appearance:
-        region "Navigation" using header content appearance:
-            link "DynLex" to "/index.html" using brand appearance
-            region "Main navigation" using navigation appearance:
-                link "Playground" to "/index.html#playground" using navigation link appearance
-                link "Challenges" to "/index.html#challenges" using navigation link appearance
-                link "Language" to "/index.html#language" using navigation link appearance
-                link "IDE ↗" to "/ide/index.html" using navigation link appearance
-                link "Docs" to "/wiki/index.html" using navigation link appearance
-                link "Download ↓" to "/download.html" using navigation link appearance
+    view group "Site navigation visibility" using header appearance:
+        region "Site header" using header appearance:
+            region "Navigation" using header content appearance:
+                link "DynLex" to "/index.html" using brand appearance
+                region "Main navigation" using navigation appearance:
+                    link "Playground" to "/index.html#playground" using navigation link appearance
+                    link "Challenges" to "/index.html#challenges" using navigation link appearance
+                    link "Language" to "/index.html#language" using navigation link appearance
+                    link "IDE ↗" to "/ide/index.html" using navigation link appearance
+                    link "Docs" to "/wiki/index.html" using navigation link appearance
+                    link "Download ↓" to "/download.html" using navigation link appearance
     home page
     download page
     IDE page
@@ -38,9 +39,10 @@ document dynlex website using page appearance:
     documentation sections loop page
     documentation sections match page
     documentation terms page
-    region "Site footer" using footer appearance:
-        paragraph "Make the language part of the work." using heading appearance
-        region "Footer links" using cards appearance:
-            link "Source code ↗" to "https://github.com/OpenAEC-Foundation/dynlex" using navigation link appearance
-            link "OpenAEC Foundation ↗" to "https://openaec.org" using navigation link appearance
-            link "Asset attributions" to "/wiki/attributions.html" using navigation link appearance
+    view group "Site footer visibility" using no UI appearance:
+        region "Site footer" using footer appearance:
+            paragraph "Make the language part of the work." using heading appearance
+            region "Footer links" using cards appearance:
+                link "Source code ↗" to "https://github.com/OpenAEC-Foundation/dynlex" using navigation link appearance
+                link "OpenAEC Foundation ↗" to "https://openaec.org" using navigation link appearance
+                link "Asset attributions" to "/wiki/attributions.html" using navigation link appearance

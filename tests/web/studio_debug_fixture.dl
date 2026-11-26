@@ -7,29 +7,38 @@ import ../../site/packages/dynlex-ui/ui/document_layout.dl
 import ../../site/packages/dynlex-ui/testing/driver.dl
 
 document Studio debug fixture:
-    tab group "IDE modes" using no UI appearance:
-        tab "Program":
-            source pane "IDE source" containing "" using no UI appearance
-    paragraph "Compilation measurement" containing "" using no UI appearance
-    paragraph "IDE output" containing "" using no UI appearance
-    paragraph "IDE status" containing "" using no UI appearance
-    button "Debug program"
-    button "Continue debugging"
-    button "Pause debugging"
-    button "Step over"
-    button "Step into"
-    button "Step out"
-    button "Toggle breakpoint"
-    button "Clear breakpoints"
-    button "Pause preview"
-    read only text surface "Debug stack" containing "" using no UI appearance
-    read only text surface "Debug variables" containing "" using no UI appearance
-    read only text surface "Debug breakpoints" containing "" using no UI appearance
-    read only text surface "Project files" containing "" using no UI appearance
-    text field "File path" containing "" using no UI appearance
-    button "Rename file"
-    button "Delete file"
-    paragraph "File status" containing "" using no UI appearance
+    region "Studio" using no UI appearance:
+        tab group "IDE modes" using no UI appearance:
+            tab "Program":
+                source pane "IDE source" containing "" using no UI appearance
+        paragraph "Compilation measurement" containing "" using no UI appearance
+        paragraph "IDE output" containing "" using no UI appearance
+        paragraph "IDE status" containing "" using no UI appearance
+        button "Debug program"
+        button "Continue debugging"
+        button "Pause debugging"
+        button "Step over"
+        button "Step into"
+        button "Step out"
+        button "Toggle breakpoint"
+        button "Clear breakpoints"
+        button "Pause preview"
+        read only text surface "Debug stack" containing "" using no UI appearance
+        read only text surface "Debug variables" containing "" using no UI appearance
+        read only text surface "Debug breakpoints" containing "" using no UI appearance
+        read only text surface "Project files" containing "" using no UI appearance
+        text field "File path" containing "" using no UI appearance
+        button "Rename file"
+        button "Delete file"
+        paragraph "File status" containing "" using no UI appearance
+        button "Stop program"
+        view group "Studio file prompt" using no UI appearance:
+            paragraph "Prompt" using no UI appearance
+        tab group "Studio inspector" using no UI appearance:
+            tab "Files":
+                paragraph "Project" using no UI appearance
+            tab "Debug":
+                paragraph "Session" using no UI appearance
 
 to [prepare the Studio debugger fixture in] {a pointer to website state:state}:
     set view to state's view

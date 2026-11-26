@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {verifyStudioDebugger} from './studio_debugger_checks.mjs';
+import {verifyStudioGeometry,verifyStudioShell} from './studio_layout_checks.mjs';
+import {studioMenu} from './studio_controls.mjs';
 import {verifyStudioProject} from './studio_project_checks.mjs';
 import {browserRelease as release} from './release_fixture.mjs';
 import {compilerPath} from '../../scripts/dependencies.mjs';
@@ -171,6 +173,11 @@ try {
         env.ui_present=(...args)=>{const result=present(...args);window.siteProbe.presentations=(window.siteProbe.presentations??0)+1;return result;};
         const begin = env.ui_begin, mask = env.ui_text_mask;
         const decoder = new TextDecoder();
+        const copy = env.ui_copy;
+        env.ui_copy = (pointer,count) => {
+          window.siteProbe.copiedText=decoder.decode(new Uint8Array(env.__linear_memory.buffer,pointer,count));
+          return copy(pointer,count);
+        };
         const registered = ${JSON.stringify(fonts)}, openFont = env.ui_open_font, faces = new Map();
         env.ui_open_font = (surface, pointer, size, ...args) => {
           const resource = openFont(surface, pointer, size, ...args);
@@ -180,7 +187,7 @@ try {
           faces.set(resource, { index, size, weight: registered[index].weight });
           return resource;
         };
-        const farm = new Set(), textures = new Set(), draws = env.ui_shader_draws, frame = env.ui_shader_frame;
+        const farm = new Set(), textures = new Set(), previews = new Set(), draws = env.ui_shader_draws, frame = env.ui_shader_frame;
         const triangles = env.ui_triangles;
         const vertexBuffer=env.ui_shader_vertex_buffer,uniform=env.ui_shader_uniform;
         env.ui_shader_vertex_buffer=(surface,shader,pass,slot,pointer,count)=>{
@@ -206,20 +213,25 @@ try {
           const texture = frame(surface,shader,width,height);
           if (farm.has(shader)) { textures.add(texture); window.siteProbe.farmFrames.push({shader,width,height}); }
           else if (location.pathname === '/' || location.pathname === '/index.html') window.siteProbe.heroFrames++;
+          else if (location.pathname.startsWith('/ide/')) previews.add(texture);
           return texture;
         };
         env.ui_triangles = (surface,pointer,count,texture,x,y,width,height) => {
-          if (textures.has(texture) && count > 0) {
+          if ((textures.has(texture) || previews.has(texture)) && count > 0) {
             const vertices = new Float32Array(env.__linear_memory.buffer,pointer,count * 8);
             let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
             for(let index=0;index<vertices.length;index+=8) {
               left=Math.min(left,vertices[index]);right=Math.max(right,vertices[index]);
               top=Math.min(top,vertices[index+1]);bottom=Math.max(bottom,vertices[index+1]);
             }
-            window.siteProbe.farmViewport={x:left,y:top,width:right-left,height:bottom-top};
+            if (textures.has(texture)) window.siteProbe.farmViewport={x:left,y:top,width:right-left,height:bottom-top};
             left=Math.max(left,x,0);right=Math.min(right,x+width,innerWidth);
             top=Math.max(top,y,0);bottom=Math.min(bottom,y+height,innerHeight);
-            if(right>left && bottom>top) window.siteProbe.farmBounds={x:left,y:top,width:right-left,height:bottom-top};
+            if(right>left && bottom>top) {
+              const bounds={x:left,y:top,width:right-left,height:bottom-top};
+              if (textures.has(texture)) window.siteProbe.farmBounds=bounds;
+              else window.siteProbe.previewBounds=bounds;
+            }
           }
           return triangles(surface,pointer,count,texture,x,y,width,height);
         };
@@ -231,6 +243,7 @@ try {
         env.ui_begin = (...args) => {
           window.siteProbe.visible = [];
           window.siteProbe.farmBounds = null;
+          window.siteProbe.previewBounds = null;
           return begin(...args);
         };
         env.ui_text_mask = (font, pointer, count, ...args) => {
@@ -368,6 +381,10 @@ try {
     }
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'debugger') {
     await verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'studio-layout') {
+    await command('Page.navigate',{url:(process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`)+'/ide/'});
+    await verifyStudioGeometry({command,evaluate,waitFor,controls,capture});
+    await verifyStudioShell({command,evaluate,waitFor,controls,capture});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
@@ -413,9 +430,11 @@ try {
   console.log('Worker checks:', await evaluate(`import('/__tests__/workers.mjs').then(module => module.verifyWorkers(new URL(${JSON.stringify(assetBase)},location.href)))`));
   await click(1009,22);
   await waitFor('location.pathname === "/ide/index.html" && document.title === "DynLex Studio"');
+  await studioMenu(controls,'View','Problems');
   await waitFor('window.siteProbe.texts.includes("No problems found.")');
+  await studioMenu(controls,'View','Files');
   await pause(500); await capture('ide');
-  await clickText('Run program ▶');
+  await studioMenu(controls,'Run','Run program');
   await waitFor('window.siteProbe.texts.includes("Hello from DynLex.")');
   await click(120,480);
   await verifySourceCompletion({command,evaluate,waitFor,key,capture,
@@ -437,11 +456,12 @@ try {
   await waitFor('window.siteProbe.visible.some(text => text.includes("とうきょう"))');
   await command('Input.insertText', { text:'東京' });
   await evaluate('window.siteProbe.programOutput = ""');
-  await clickText('Run program ▶');
+  await studioMenu(controls,'Run','Run program');
   await waitFor('window.siteProbe.programOutput.includes("東京\\n")');
   await capture('ide-executed');
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText',{text:'unrecognized instruction'});
+  await studioMenu(controls,'View','Problems');
   await waitFor('window.siteProbe.visible.map(text=>text.trim()).join(" ").includes("This pattern couldn")');
   const beforeValid = await evaluate('window.siteProbe.diagnostics.length');
   await click(120,480); await key('KeyA','a',65,2);
@@ -458,13 +478,13 @@ try {
     controls:canvasControls({command,evaluate,capture}),source:'import lib/std.dl\nprint line "😀"'});
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText',{text:'import lib/std.dl\nloop while true:\n    ignore 1'});
-  await clickText('Run program ▶'); await pause(1800); await clickText('Stop program ■');
+  await studioMenu(controls,'Run','Run program'); await pause(1800); await studioMenu(controls,'Run','Stop program');
   await waitFor('window.siteProbe.texts.includes("Stopped.")');
   await clickText('Shader');
   await waitFor('window.siteProbe.texts.some(text => text.startsWith("Shader compiled in"))');
   await capture('shader-default');
   await clickText('Program');
-  await click(1115,22);
+  await studioMenu(controls,'Help','Language reference');
   await waitFor('location.pathname === "/wiki/index.html"');
   await evaluate('history.back()'); await waitFor('location.pathname === "/ide/index.html"');
   await evaluate('history.back()'); await waitFor('location.pathname === "/wiki/index.html"');
@@ -509,7 +529,7 @@ try {
   await evaluate(`history.pushState(null, '', ${JSON.stringify(renamedUrl)}); dispatchEvent(new PopStateEvent('popstate'))`);
   await waitFor('window.siteProbe.texts.includes("Renamed source ran.")');
   await waitFor('window.siteProbe.diagnostics.some(result => result.uri.endsWith("/renamed.dl") && result.diagnostics.length === 0)');
-  await clickText('Save source ↓');
+  await studioMenu(controls,'File','Save source');
   await waitFor('window.siteProbe.downloads.some(item => item.name === "renamed.dl" && item.href.startsWith("blob:"))');
   await capture('ide-linked');
   await click(120,480); await key('KeyA','a',65,2);
@@ -523,7 +543,7 @@ try {
   await waitFor('window.siteProbe.diagnostics.some(result => result.uri.endsWith("/caret.dl") && result.diagnostics.length === 0)');
   await capture('ide-replaced');
   const compilations = await evaluate('window.siteProbe.compilations.length');
-  await click(1115,22); await waitFor('location.pathname === "/wiki/index.html"');
+  await studioMenu(controls,'Help','Language reference'); await waitFor('location.pathname === "/wiki/index.html"');
   await evaluate('history.back()'); await waitFor('location.pathname === "/ide/index.html"');
   await pause(700);
   assert.equal(await evaluate('window.siteProbe.compilations.length'), compilations,
@@ -543,24 +563,27 @@ try {
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText', { text: 'import lib/std.dl\nprint line "Retained program tab"' });
   await clickText('Shader');
-  await clickText('Save source ↓');
+  await studioMenu(controls,'File','Save source');
   await waitFor('window.siteProbe.downloads.some(item => item.name === "preview.dl" && item.content !== undefined)');
   assert.equal(await evaluate('window.siteProbe.downloads.at(-1).content'), shaderSource,
     'Switching editor tabs replaced the shader source');
-  const previewImage = async () => (await command('Page.captureScreenshot', { format: 'png',
-    clip: { x: 680, y: 418, width: 528, height: 320, scale: 1 } })).data;
+  const previewImage = async () => {
+    await waitFor('window.siteProbe.previewBounds!==null');
+    const bounds=await evaluate('window.siteProbe.previewBounds');
+    return (await command('Page.captureScreenshot',{format:'png',clip:{...bounds,scale:1}})).data;
+  };
   const successfulPreview = await previewImage();
   await evaluate('window.siteProbe.texts.length = 0');
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText', { text: 'unknown shader instruction' });
-  await clickText('Recompile shader ↻');
+  await clickText('Build shader');
   await waitFor('window.siteProbe.texts.includes("Compilation failed.")');
   await capture('shader-failed-edit');
   assert.equal(await previewImage(), successfulPreview, 'A failed shader edit replaced the last successful preview');
   await evaluate('window.siteProbe.texts.length = 0');
   await click(120,480); await key('KeyA','a',65,2);
   await command('Input.insertText', { text: shaderSource });
-  await clickText('Recompile shader ↻');
+  await clickText('Build shader');
   await waitFor('window.siteProbe.texts.some(text => text.startsWith("Shader compiled in"))');
   await clickText('Pause preview');
   await waitFor('window.siteProbe.visible.includes("Resume preview")');

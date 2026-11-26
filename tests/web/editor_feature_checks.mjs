@@ -6,14 +6,14 @@ import {setTimeout as pause} from 'node:timers/promises';
 const callColors=JSON.parse(await fs.readFile(compilerPath('shared/call-colors.json'),'utf8'));
 
 export async function verifySourceNavigationAppearance({waitFor,disabled}) {
-  for(const label of ['Back','Main file']) {
-    await waitFor(`(() => {
-      const action=window.colorProbe.find(item=>item.text.trim()===${JSON.stringify(label)});
-      const available=window.colorProbe.find(item=>item.text.trim()==='Outline');
-      if(!action || !available) return false;
-      return action.ink.every((value,index)=>${disabled?'value+0.01<available.ink[index]':'Math.abs(value-available.ink[index])<0.0001'});
-    })()`);
-  }
+  await waitFor(`(() => {
+    const filename=window.colorProbe.find(item=>/\\.dl(?: · Read only)?$/.test(item.text.trim()));
+    if(!filename) return false;
+    const actions=window.iconProbe.filter(item=>Math.abs(item.y-filename.y)<4).sort((a,b)=>a.x-b.x);
+    if(actions.length!==7) return false;
+    const available=actions[3];
+    return actions.slice(0,2).every(action=>action.ink.every((value,index)=>${disabled?'value+0.01<available.ink[index]':'Math.abs(value-available.ink[index])<0.0001'}));
+  })()`);
 }
 
 export async function verifySourceCallColor({waitFor,text,depth=0,theme='dark'}) {

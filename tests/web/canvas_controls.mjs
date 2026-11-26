@@ -21,7 +21,7 @@ export function canvasControls({command,evaluate,capture}) {
         const fragment=entry.text.trim();
         if(!fragment) continue;
         caption+=(caption?' ':'')+fragment;
-        if(entry.y>(innerWidth<700?140:80)&&entry.y<innerHeight-20) point??=entry;
+        if(entry.y>(location.pathname.startsWith('/ide/')?0:(innerWidth<700?140:80))&&entry.y<innerHeight-20) point??=entry;
         if(caption===target&&point) return point;
         if(!target.startsWith(caption)) break;
       }
@@ -72,5 +72,23 @@ export function canvasControls({command,evaluate,capture}) {
     return point;
   };
   const clickVisibleText=(text,settle=350)=>clickText(text,settle,false);
-  return {click,key,clickText,clickVisibleText,textVisible,revealText,wheel};
+  const chooseMenuItem=async(menu,text)=>{
+    const owner=await revealText(menu);
+    const matches=`window.colorProbe.filter(item=>item.text.trim()===${JSON.stringify(text)})`;
+    const count=await evaluate(matches+'.length');
+    await click(owner.x,owner.y);
+    // Popups paint after the document, including any tab with the same caption.
+    for(let attempt=0;attempt<100;attempt++) {
+      const items=await evaluate(matches);
+      if(items.length>count) {
+        const item=items.at(-1);
+        await click(item.x,item.y);
+        return;
+      }
+      await pause(50);
+    }
+    await capture('menu-item-missing');
+    throw new Error('Could not find '+text+' in the '+menu+' menu');
+  };
+  return {click,key,clickText,clickVisibleText,textVisible,revealText,wheel,chooseMenuItem};
 }

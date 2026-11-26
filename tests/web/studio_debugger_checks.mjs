@@ -1,11 +1,12 @@
 // Exercise debugger controls through the rendered editor and ordinary input.
 import assert from 'node:assert/strict';
+import {studioMenu,studioToolbar} from './studio_controls.mjs';
 
 export async function verifyStudioDebugger({command,evaluate,waitFor,controls,capture,origin}) {
   const {clickText,key}=controls;
   await command('Page.navigate',{url:origin+'/ide/'});
   await waitFor('window.siteProbe?.visible.includes("main.dl")');
-  await controls.revealText('Run program ▶');
+  await controls.revealText('Run');
   await waitFor('window.colorProbe.some(item=>item.text.includes("import"))');
   const sourcePoint=await evaluate('window.colorProbe.find(item=>item.text.includes("import"))');
   await controls.click(sourcePoint.x,sourcePoint.y);
@@ -13,7 +14,7 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   await key('KeyA','a',65,2);
   await command('Input.insertText',{text:source});
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(source)}`);
-  await clickText('Debug program');
+  await studioToolbar({controls,evaluate},'Debug');
   const paused=async count=>{
     await waitFor(`window.siteProbe.debugEvents.filter(event=>event.type==='program-paused').length===${count}`);
     await waitFor('document.activeElement===document.querySelector("textarea") && window.colorProbe.some(item=>item.text.includes("import") && item.x<innerWidth/2)');
@@ -36,10 +37,12 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   };
   await expandItems();
   await waitFor('window.siteProbe.visible.some(text=>text.includes("[0]:") && text.endsWith("= 4")) && window.siteProbe.visible.some(text=>text.includes("[1]:") && text.endsWith("= 5"))');
+  await command('Emulation.setDeviceMetricsOverride',{width:1280,height:450,deviceScaleFactor:1,mobile:false});
   await controls.wheel(900);
   await waitFor('!window.colorProbe.some(item=>item.text.includes("import") && item.x<innerWidth/2)');
 
   await key('F11','F11',122); await paused(4);
+  await command('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
   assert.equal(await evaluate(`${latest}.frames.length`),2);
   const caller=await evaluate(`${latest}.frames[1]`);
   await clickText(caller.name+' · line '+(caller.range.start.line+1));
@@ -63,11 +66,11 @@ export async function verifyStudioDebugger({command,evaluate,waitFor,controls,ca
   await capture('debugger-breakpoint');
   await key('F5','F5',116);
   await waitFor('window.siteProbe.programOutput==="2\\n9\\n"');
-  await clickText('Clear breakpoints');
-  await clickText('Debug program'); await paused(8);
-  await clickText('Stop program ■');
+  await studioMenu(controls,'Debug','Clear breakpoints');
+  await studioToolbar({controls,evaluate},'Debug'); await paused(8);
+  await key('F5','F5',116,8);
   await waitFor('window.siteProbe.visible.includes("Stopped.")');
-  await clickText('Debug program'); await paused(9);
+  await studioToolbar({controls,evaluate},'Debug'); await paused(9);
   await key('End','End',35,2);
   await command('Input.insertText',{text:'\n# Edited while paused\n'});
   await waitFor('window.siteProbe.visible.includes("Stopped.")');
