@@ -30,6 +30,15 @@ class SourcePackage:
                 if hashlib.sha256(data).hexdigest() != digest:
                     raise ValueError(f'Source package hash does not match: {name}')
                 self.files[name] = data
+            if 'exports' in self.manifest:
+                descriptor = json.loads(self.files['dynlex-package.json'])
+                for name, default in [('exports', None), ('dependencies', {}), ('description', ''),
+                                      ('documentation', ''), ('title', self.manifest['package']),
+                                      ('publisher', ''), ('importName', self.manifest['package'])]:
+                    if self.manifest.get(name, default) != descriptor.get(name, default):
+                        raise ValueError(f'Library metadata differs from its hashed descriptor: {name}')
+                if descriptor['schema'] != 1 or descriptor['name'] != self.manifest['package']:
+                    raise ValueError('Library identity differs from its hashed descriptor')
 
     def source_files(self, prefix):
         return {f'{prefix}/{name}': data.decode('utf-8')

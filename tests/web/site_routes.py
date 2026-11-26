@@ -29,6 +29,9 @@ class SiteRoutes(unittest.TestCase):
         self.assertLess(workflow.index('Verify public release'), workflow.index('Remove superseded deployment files'))
         self.assertNotIn('build_web_root.sh', workflow)
         self.assertNotIn('prepare_web_deployment.mjs', workflow)
+        self.assertLess(workflow.index('python3 "$DEPLOY_PATH/.publish-libraries-$RELEASE.py"'),
+                        workflow.index('ln -s "releases/$RELEASE"'))
+        self.assertIn('! -name current ! -name libraries', workflow)
 
     def test_public_files_are_published_without_replacing_generated_files(self):
         with tempfile.TemporaryDirectory() as directory:

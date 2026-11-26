@@ -1,0 +1,21 @@
+import ../libraries/catalog.dl
+
+website page libraries page at "/libraries/index.html" titled "DynLex Libraries" described "Find reusable DynLex libraries, read their documentation and download source SDKs.":
+    region "Libraries directory" using content appearance:
+        region "Library introduction" using library introduction appearance:
+            paragraph "DYNLEX / LIBRARIES" using signal appearance
+            paragraph "Build on what’s here." using title appearance
+            paragraph "Browse reusable DynLex libraries. Read the docs or download a source SDK." using body appearance
+        region "Library search tools" using library search tools appearance:
+            paragraph "Library directory search heading" containing "Search libraries" using subheading appearance
+            text field "Find a library" containing "" using library search appearance
+            region "Library search actions" using library search actions appearance:
+                paragraph "Library result count" containing "" using signal appearance
+                link "Clear search" to "action:clear-library-search" using link appearance
+        the website library cards
+        view group "Library no results" using stack appearance:
+            paragraph "No libraries match your search. Try another name, publisher or topic." using body appearance
+        region "Use a library" using card appearance:
+            paragraph "Add a library in your editor" using subheading appearance
+            paragraph "In VS Code, open Explorer → Libraries → +. In Studio, choose Add Library in the project panel." using body appearance
+            link "Open Studio ↗" to "/ide/index.html" using link appearance

@@ -8,12 +8,15 @@ TYPES = {
     'wasm': 'application/wasm',
     'js|mjs': 'text/javascript',
     'json': 'application/json',
+    'zip': 'application/zip',
     'html': 'text/html',
     'css': 'text/css',
     'svg': 'image/svg+xml',
     'dl|wgsl|glsl': 'text/plain',
     'f32': 'application/octet-stream',
 }
+
+ARCHIVE_URI = r'~^/libraries/[a-z][a-z0-9-]*/[a-f0-9]{64}\.zip(?:\?|$)'
 
 
 def maps(root):
@@ -31,10 +34,12 @@ map $uri $dynlex_encoding {{
 }}
 map $request_uri $dynlex_root {{
     default {root}/current;
+    "{ARCHIVE_URI}" {root};
     ~^/releases/ {root};
 }}
 map $request_uri $dynlex_cache {{
     default "no-cache";
+    "{ARCHIVE_URI}" "public, max-age=31536000, immutable";
     ~^/releases/ "public, max-age=31536000, immutable";
 }}
 '''

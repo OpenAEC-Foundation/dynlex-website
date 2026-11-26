@@ -1,0 +1,38 @@
+import ../../site/pages/libraries.dl
+import ../../site/packages/dynlex-ide/studio/page.dl
+import ../../site/libraries/controller.dl
+import ../../site/packages/dynlex-ui/platform/browser/requests.dl
+
+document library fixture:
+    libraries page
+    IDE page
+
+set instance to an instance of library fixture
+set view to a new UI view
+set view's instance to the address of instance
+set state to a new website state
+set state's view to the address of view
+set state's services to the browser UI service provider
+set instance's state to (the address of state) as a pointer
+require condition (the UI element (the control labeled "Search libraries" in (the address of instance)) accepts edits in (the address of instance)) reporting "The directory heading shadows Studio's library search field"
+bind website libraries in (the address of instance)
+require condition ((the UI value for (the control labeled "Library result count" in (the address of instance)) in (the address of instance))'s text = "2 libraries") reporting "The complete catalog was not displayed"
+set the text of "Find a library" in (the address of instance) to "DYNLEX-UI"
+filter website libraries in (the address of instance)
+require condition ((the value of "dynlex-ui" in (the address of instance)) = 0) reporting "Case-insensitive search hid the matching card"
+require condition ((the value of "dynlex-ide" in (the address of instance)) = -1) reporting "Search retained an unrelated card"
+require condition ((the UI value for (the control labeled "Library result count" in (the address of instance)) in (the address of instance))'s text = "1 library") reporting "The filtered count is incorrect"
+set the text of "Find a library" in (the address of instance) to "no-such-library"
+filter website libraries in (the address of instance)
+require condition ((the value of "Library no results" in (the address of instance)) = 0) reporting "Empty search results have no explanation"
+ignore follow website library action "action:clear-library-search" in (the address of state)
+require condition ((the value of "Library no results" in (the address of instance)) = -1) reporting "Clearing search did not restore the catalog"
+ignore follow website library action "action:library-download:dynlex-ui" in (the address of state)
+require condition ((follow website library action "action:unrelated" in (the address of state)) = false) reporting "The catalog consumed an unrelated action"
+set pending to state's requests
+loop while pending != (0 as a pointer to website request):
+    set next to pending's next
+    deallocate pending
+    set pending to next
+close the address of instance
+print line "The library directory filters cards, clears search and opens the pinned SDK archive."

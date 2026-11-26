@@ -4,8 +4,24 @@ import {studioMenu,studioToolbar,sourceToolbar,sourceContextDefinition} from './
 
 export async function verifyStudioProject({command,evaluate,waitFor,controls,capture,origin}) {
   const {click,clickText,key}=controls;
+  const preservedPath='.dynlex/packages/app/keep.dl',preservedSource='original means: 7';
+  const draft='import lib/std.dl\nimport '+preservedPath+'\nprint line "Restored draft."';
+  const initial={entry:'main.dl',files:{'main.dl':draft,[preservedPath]:preservedSource}};
+  await evaluate(`localStorage.setItem('dynlex-studio-program-project',${JSON.stringify(JSON.stringify(initial))})`);
   await command('Page.navigate',{url:origin+'/ide/'});
   await waitFor('window.siteProbe?.visible.includes("main.dl")');
+  await clickText('import lib/std.dl');
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(draft)}`);
+  assert.equal(await evaluate("JSON.parse(localStorage.getItem('dynlex-studio-program-project')).schema"),1);
+  assert.deepEqual(await evaluate("JSON.parse(localStorage.getItem('dynlex-studio-program-project')).dependencies.manifest.dependencies"),{});
+  const visitPreserved=async()=>{
+    for(const folder of ['.dynlex','packages','app']) await clickText('▸ '+folder);
+    await clickText('keep.dl');
+    await waitFor(`document.querySelector('textarea').value===${JSON.stringify(preservedSource)}`);
+    assert.equal(await evaluate("document.querySelector('textarea').readOnly"),false);
+    await clickText('Main file');
+  };
+  await visitPreserved();
   const replace=async text=>{
     await key('KeyA','a',65,2);
     await command('Input.insertText',{text});
@@ -76,5 +92,48 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   await clickText('▸ lib');
   await clickText('array.dl');
   await waitFor('window.siteProbe.visible.includes("array.dl · Read only")');
+  await clickText('＋ Add Library');
+  await controls.revealText('DynLex UI — OpenAEC-Foundation');
+  await clickText('Add selected library');
+  const saved='JSON.parse(localStorage.getItem("dynlex-studio-program-project"))';
+  await waitFor(`${saved}?.dependencies?.lock?.dependencies?.ui==='dynlex-ui'`);
+  await clickText('Close library picker');
+  await clickText('Main file');
+  const libraryProgram='import lib/filesystem.dl\nimport ui/colors.dl\nset ink to UI ink 12 34 56\nprint line ink\'s red\nread the file at ".dynlex/packages/dynlex-ui/assets/fonts/LICENSE-NotoFonts" and set reading to it\nignore @intrinsic("variadic call", "libc", "printf", an integer, 1, "%d\\n", reading succeeded)';
+  await replace(libraryProgram);
+  await clickText('Run program ▶');
+  await waitFor('window.siteProbe.texts.some(item=>item.trim()==="12")');
+  await waitFor('window.siteProbe.programOutput.endsWith("12\\n1\\n")');
+  await capture('project-library-installed');
+  const locked=await evaluate(`${saved}.dependencies.lock.packages['dynlex-ui'].contentHash`);
+  await command('Page.reload',{});
+  await waitFor('window.siteProbe?.visible.includes("main.dl")');
+  await waitFor(`${saved}.dependencies.lock.packages['dynlex-ui'].contentHash===${JSON.stringify(locked)}`);
+  await waitFor('window.siteProbe.projectWrites.length>=2');
+  await clickText('Run program ▶');
+  await waitFor('window.siteProbe.texts.some(item=>item.trim()==="12")');
+  const writes=await evaluate('window.siteProbe.projectWrites.length');
+  await clickText('Update library');
+  await waitFor(`window.siteProbe.projectWrites.length>${writes}`);
+  assert.equal(await evaluate(`${saved}.dependencies.lock.packages['dynlex-ui'].contentHash`),locked);
+  await clickText('Remove library');
+  await waitFor(`Object.keys(${saved}.dependencies.lock.packages).length===0`);
+  await clickText('import ui/colors.dl');
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(libraryProgram)} && !document.querySelector('textarea').readOnly`);
+  await key('Home','Home',36,2);
+  await key('ArrowDown','ArrowDown',40);
+  await key('End','End',35);
+  await key('Period','.',190,2);
+  await waitFor('window.siteProbe.visible.includes("Add ui library to project")');
+  await capture('project-library-fixes');
+  await clickText('Add ui library to project');
+  await controls.revealText('DynLex UI — OpenAEC-Foundation');
+  await clickText('Add selected library');
+  await waitFor(`${saved}.dependencies.lock.dependencies.ui==='dynlex-ui'`);
+  await clickText('Close library picker');
+  assert.equal(await evaluate(`${saved}.files[${JSON.stringify(preservedPath)}]`),preservedSource);
+  await visitPreserved();
+  await capture('project-library-restored');
   console.log('Studio creates, edits, renames, compiles, restores, navigates and deletes project files and opens library source.');
+  console.log('Studio installs, compiles, restores, updates and removes project libraries and offers the same picker through Ctrl+.');
 }

@@ -46,7 +46,7 @@ appearance brand appearance:
         padding is 4
 
 appearance navigation appearance:
-    columns are 6
+    columns are 7
     gap is 4
     when viewport is below 560:
         columns are 3

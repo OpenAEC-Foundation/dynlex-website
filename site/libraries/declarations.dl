@@ -1,0 +1,49 @@
+import ../documentation.dl
+
+class:
+    patterns:
+        website library
+    members:
+        name as a C string
+        title as a C string
+        publisher as a C string
+        description as a C string
+        usage as a C string
+        documentation as a C string
+        documentation label as a C string
+        download as a C string
+        download label as a C string
+        action as a C string
+        search as a C string
+
+appearance library catalog appearance:
+    use columns appearance
+    gap is 24
+
+appearance library search appearance:
+    use card appearance
+    padding is 14
+    minimum height is 48
+
+appearance library introduction appearance:
+    use stack appearance
+    gap is 12
+
+appearance library search tools appearance:
+    gap is 12
+
+appearance library search actions appearance:
+    use columns appearance
+    stack below 0
+    gap is 12
+
+website library card {website library:entry} means: a UI container of kind 49 containing [
+    (a UI container of kind 41 containing [
+        paragraph (entry's title) using heading appearance,
+        paragraph (entry's publisher) using signal appearance,
+        paragraph (entry's description) using body appearance,
+        paragraph (entry's usage) using signal appearance,
+        link (entry's download label) to (entry's action) using primary link appearance,
+        a UI container of kind 49 containing [link (entry's documentation label) to (entry's documentation) using link appearance] named (entry's documentation label)
+    ]) wearing card appearance
+] named (entry's name)

@@ -12,6 +12,8 @@ to get receive website reply {a pointer to JSON value:response} for {integer:job
         receive Studio debug variables response for pause index in state
     if job = 25:
         receive the Studio library catalog response in state
+    if job = 28:
+        receive Studio library operation response in state
     if job = 1:
         receive website environment response in state
         return true
@@ -124,6 +126,8 @@ to read website input {a pointer to UI view:view}:
                 set view's instance's status to "An error occurred. Check the log."
                 if pending's purpose = 25:
                     fail the Studio library request in state
+                if pending's purpose = 28:
+                    fail Studio library installation in state
                 if pending's purpose = 4:
                     set (state's shaders + pending's index)'s loading to false
                     set (state's shaders + pending's index)'s failed to true
@@ -235,6 +239,7 @@ function open the DynLex website using {a pointer to UI driver:driver} with {a p
         bind website links in (instance's description) for instance
         bind website program commands in state
         bind Studio controls in instance
+        bind website libraries in instance
         bind (the control labeled "Live shader" in instance) in instance to (the function named "paint the website shader $") for event 1
         watch UI input in view using (the function named "read website input $")
         update UI frames in view using (the function named "advance the website frame $")
