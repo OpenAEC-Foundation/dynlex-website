@@ -16,6 +16,7 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from dependencies import dependency
+from library_catalog import collect_libraries, dynlex_catalog
 
 
 def compilation_budget(name):
@@ -112,6 +113,7 @@ def main():
     cases.append('site_program_deadlines')
     cases.append('site_startup')
     cases.append('site_theme_controller')
+    cases.append('site_libraries')
     cases.append('site_farm_controller')
     cases.append('site_farm_profiles')
     cases.append('site_farm_rebuilding')
@@ -140,6 +142,9 @@ def main():
             shutil.copyfile(source, target)
         for name in ('dynlex-ui', 'dynlex-ide'):
             dependency(name).extract(project / 'site/packages' / name)
+        configuration = json.loads((ROOT / 'site/project.json').read_text())
+        catalog = project / 'site/libraries/catalog.dl'
+        catalog.write_text(dynlex_catalog(collect_libraries(configuration, dependency)))
         fixture = project / 'tests/web/site_fixture.dl'
         fixture.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'tests/web/site_fixture.dl', fixture)

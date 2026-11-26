@@ -20,9 +20,17 @@ try {
   assert.match(workflow,/python3 scripts\/nginx_delivery\.py --root "\$DEPLOY_PATH"/);
   assert.match(workflow,/mv "\$DEPLOY_PATH\/\.nginx-\$RELEASE\.conf" "\$config_path"/);
   assert.match(workflow,/-mmin \+1440/);
+  assert.match(workflow,/! -name current ! -name libraries/);
   const pages=JSON.parse(await readFile(path.join(directory,'routes.json'),'utf8'));
   assert(pages.some(page=>page.path==='/river-character-sheet.html'),
     'The release omitted the production character inspection route');
+  assert(pages.some(page=>page.path==='/libraries/index.html'),'The public library directory is absent');
+  const catalog=JSON.parse(await readFile(path.join(directory,'libraries/index.json'),'utf8'));
+  for(const library of catalog.libraries) {
+    const archive=`/libraries/${library.name}/${library.source.contentHash}.zip`;
+    assert.equal(library.source.url,archive,'Catalog downloads must survive website release cleanup');
+    assert((await stat(path.join(directory,archive.slice(1)))).isFile(),archive);
+  }
   const generated=spawnSync('python3',['-c',`
 import json,sys
 from pathlib import Path

@@ -227,6 +227,7 @@ function open the DynLex website using {a pointer to UI driver:driver} with {a p
         bind website links in (instance's description) for instance
         bind website program commands in state
         bind Studio controls in instance
+        bind website libraries in instance
         bind (the control labeled "Live shader" in instance) in instance to (the function named "paint the website shader $") for event 1
         watch UI input in view using (the function named "read website input $")
         update UI frames in view using (the function named "advance the website frame $")

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {verifyStudioProject} from './studio_project_checks.mjs';
+import {verifyLibraryDirectory} from './library_directory_checks.mjs';
 import {browserRelease as release} from './release_fixture.mjs';
 import {compilerPath} from '../../scripts/dependencies.mjs';
 import fs from 'node:fs/promises';
@@ -33,6 +34,7 @@ for (const page of JSON.parse(await fs.readFile(path.join(directory, 'routes.jso
 const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'dynlex-ui-chrome-'));
 await fs.mkdir('.cache', { recursive: true });
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
+  '.zip': 'application/zip',
   '.wasm': 'application/wasm', '.ttf': 'font/ttf', '.webp': 'image/webp',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const server = http.createServer(async (request, response) => {
@@ -49,8 +51,9 @@ const server = http.createServer(async (request, response) => {
     }
     const pathname = new URL(request.url, 'http://localhost').pathname;
     const asset = pathname.startsWith(assetBase);
-    if (!asset && !pagePaths.has(pathname)) throw new Error('Unversioned asset request');
-    const filename = path.resolve(directory, asset ? pathname.slice(assetBase.length) : '.' + pathname);
+    const library=pathname==='/libraries/index.json'||/^\/libraries\/[a-z][a-z0-9-]*\/[a-f0-9]{64}\.zip$/.test(pathname);
+    if (!asset && !library && !pagePaths.has(pathname)) throw new Error('Unversioned asset request');
+    const filename = path.resolve(directory, library ? '.'+pathname : asset ? pathname.slice(assetBase.length) : '.' + pathname);
     if (!filename.startsWith(directory + '/') && filename !== directory) throw new Error('Path');
     const resolved = (await fs.stat(filename)).isDirectory() ? path.join(filename, 'index.html') : filename;
     response.setHeader('Content-Type', mime[path.extname(resolved)] || 'application/octet-stream');
@@ -82,7 +85,7 @@ try {
   const targets = await fetch(`http://127.0.0.1:${port}/json/list`).then(response => response.json());
   socket = new WebSocket(targets.find(target => target.type === 'page').webSocketDebuggerUrl);
   await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
-  let sequence = 0; const pending = new Map(), errors = [];
+  let sequence = 0; const pending = new Map(), errors = [], downloadEvents = [];
   let intercept;
   const traceEvents=[];let traceComplete=false;
   socket.addEventListener('message', event => {
@@ -91,6 +94,7 @@ try {
       const operation = pending.get(message.id); pending.delete(message.id);
       if (message.error) operation.reject(new Error(message.error.message)); else operation.resolve(message.result);
     } else if (message.method === 'Tracing.dataCollected') traceEvents.push(...message.params.value);
+    else if (message.method === 'Browser.downloadWillBegin') downloadEvents.push(message.params);
     else if (message.method === 'Tracing.tracingComplete') traceComplete=true;
     else if (message.method === 'Fetch.requestPaused') {
       intercept(message.params).catch(error => errors.push(String(error)));
@@ -358,6 +362,8 @@ try {
     }
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'libraries') {
+    await verifyLibraryDirectory({command,evaluate,waitFor,controls,capture,origin:`http://127.0.0.1:${server.address().port}`,assetBase,downloadEvents});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'farm') {
     await verifyFarmPage({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});
     await verifyFarmRestore({command,evaluate,waitFor,controls:canvasControls({command,evaluate,capture}),capture});

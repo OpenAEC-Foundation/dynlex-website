@@ -5,7 +5,7 @@ cd "$ROOT"
 for dependency in node python3; do command -v "$dependency" >/dev/null || { echo "Missing required dependency: $dependency"; exit 1; }; done
 python3 scripts/dependencies.py
 for source in site/platform/*.js scripts/*.mjs tests/web/*.mjs; do node --check "$source"; done
-for test in source_package site_routes site_preview site_launchers site_delivery nginx_delivery site_runner; do python3 "tests/web/$test.py"; done
+for test in source_package library_catalog publish_libraries site_routes site_preview site_launchers site_delivery nginx_delivery site_runner; do python3 "tests/web/$test.py"; done
 node tests/web/firebase_provider.mjs
 python3 scripts/generate_farm_vocabulary.py --check
 python3 tests/integration/run.py

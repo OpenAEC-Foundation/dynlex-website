@@ -56,6 +56,8 @@ jobs:
             "rm -rf '$remote_incoming' && mkdir -p '$remote_incoming'"
           rsync -az --delete -e "ssh -p $DEPLOY_PORT" \
             "$RUNNER_TEMP/site/" "$DEPLOY_USER@$DEPLOY_HOST:$remote_incoming/"
+          scp -P "$DEPLOY_PORT" scripts/publish_libraries.py \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.publish-libraries-$RELEASE.py"
 
       - name: Publish release atomically
         run: |
@@ -79,6 +81,8 @@ jobs:
             echo "The release directory must have mode 0755 so nginx can read it." >&2
             exit 1
           fi
+          python3 "$DEPLOY_PATH/.publish-libraries-$RELEASE.py" --root "$DEPLOY_PATH"
+          rm "$DEPLOY_PATH/.publish-libraries-$RELEASE.py"
           touch "$release_path"
           ln -s "releases/$RELEASE" "$DEPLOY_PATH/current.next"
           mv -Tf "$DEPLOY_PATH/current.next" "$DEPLOY_PATH/current"
@@ -116,6 +120,17 @@ jobs:
           for asset in platform/start.js application.wasm; do
             curl "${curl_options[@]}" --head --output /dev/null "$release_url/$asset"
           done
+          curl "${curl_options[@]}" --output /dev/null "$public_site/libraries/"
+          catalog="$RUNNER_TEMP/dynlex-libraries.json"
+          curl "${curl_options[@]}" --output "$catalog" "$public_site/libraries/index.json"
+          python3 - "$catalog" > "$RUNNER_TEMP/dynlex-library-paths" <<'PY'
+          import json,sys
+          for library in json.load(open(sys.argv[1]))['libraries']:
+              print(library['source']['url'])
+          PY
+          while IFS= read -r archive; do
+            curl "${curl_options[@]}" --head --output /dev/null "$public_site$archive"
+          done < "$RUNNER_TEMP/dynlex-library-paths"
 
       - name: Remove superseded deployment files
         run: |
@@ -125,7 +140,7 @@ jobs:
           set -euo pipefail
           test "$(basename "$DEPLOY_PATH")" = "dynlex.com"
           find "$DEPLOY_PATH" -mindepth 1 -maxdepth 1 \
-            ! -name releases ! -name current -exec rm -rf -- {} +
+            ! -name releases ! -name current ! -name libraries -exec rm -rf -- {} +
           find "$DEPLOY_PATH/releases" -mindepth 1 -maxdepth 1 -type d \
             ! -name "$RELEASE" -mmin +1440 -exec rm -rf -- {} +
           REMOTE

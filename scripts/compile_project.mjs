@@ -8,6 +8,9 @@ import {root,compilerPath} from './dependencies.mjs';
 const [file,output] = process.argv.slice(2);
 if (!file || !output) throw new Error('Usage: node scripts/compile_project.mjs request.json output');
 const request = JSON.parse(await fs.readFile(file,'utf8'));
+request.sources['site/libraries/catalog.dl']=execFileSync('python3',[
+  path.join(root,'scripts/library_catalog.py')
+],{encoding:'utf8'});
 for (const name of await fs.readdir(path.join(root,'site/language'))) {
   if (name.endsWith('.dl')) request.sources['site/language/'+name] = await fs.readFile(path.join(root,'site/language',name),'utf8');
 }

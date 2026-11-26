@@ -12,6 +12,7 @@ import tempfile
 from urllib.parse import unquote, urlsplit
 
 from dependencies import dependency, unpack, site_sources
+from library_catalog import archive_filename, collect_libraries
 
 
 def compile_jobs(root, sources, jobs, stage):
@@ -172,20 +173,12 @@ def main():
         libraries = {path.relative_to(compiler_root).as_posix(): path.read_text()
                      for path in (compiler_root / 'lib').rglob('*.dl')}
         (stage / 'assets/studio-library.json').write_text(json.dumps(libraries | dependencies) + '\n')
-        library_catalog = []
-        for name in project['dependencies']:
-            package = dependency(name)
-            manifest = package.manifest
-            if 'exports' not in manifest:
-                continue
-            filename = f"{name}/{manifest['contentHash']}.zip"
+        library_catalog = collect_libraries(project, dependency)
+        for entry in library_catalog:
+            filename = archive_filename(entry)
             target = stage / 'libraries' / filename
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(site / project['dependencies'][name]['archive'], target)
-            library_catalog.append({'name': name, 'alias': manifest['importName'], 'title': manifest['title'],
-                                    'description': manifest['description'], 'publisher': manifest['publisher'],
-                                    'documentation': manifest['documentation'],
-                                    'source': {'url': filename, 'contentHash': manifest['contentHash']}})
+            shutil.copyfile(site / project['dependencies'][entry['name']]['archive'], target)
         (stage / 'libraries/index.json').write_text(json.dumps({'schema': 1, 'libraries': library_catalog}, indent=2) + '\n')
         shutil.copy2(compiler_root / 'scripts/install_release.sh', stage / 'install.sh')
         (stage / 'install.sh').chmod(0o755)

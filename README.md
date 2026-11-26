@@ -30,6 +30,12 @@ Open http://127.0.0.1:7000/. The preview uses WebGPU when available, otherwise
 WebGL2. Building does not open a window. The source map and static assets are
 published into `build/site`.
 
+`/libraries/` provides searchable library cards, documentation links and pinned
+SDK downloads. Its DynLex metadata and `/libraries/index.json` are generated from
+the same dependency packages. Search and download behavior live in `site/libraries/`.
+Deployment retains hash-addressed SDK ZIPs in a shared archive pool, including
+archives migrated from older site releases, so release cleanup preserves download URLs.
+
 ## Dependencies
 
 `site/project.json` pins content-addressed compiler, UI and IDE archives in
@@ -58,7 +64,7 @@ explicit; production builds never read a sibling checkout.
 
 Browser tests run muted in private Xvfb sessions. `DYNLEX_TEST_GRAPHICS` selects
 `webgpu`, `webgl-no-adapter` or `webgl-no-api`; `DYNLEX_SITE_SCENARIO` selects
-`general`, `farm`, `river-inspection` or `river`. Native cross-checks can use an
+`general`, `project`, `libraries`, `farm`, `river-inspection` or `river`. Native cross-checks can use an
 installed compiler executable supplied through `DYNLEX_COMPILER`; normal builds
 and tests use the pinned browser compiler.
 Delivery verification additionally requires nginx (`DYNLEX_NGINX` may point to an

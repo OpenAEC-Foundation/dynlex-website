@@ -22,10 +22,10 @@ if [[ -z "${DYNLEX_BROWSER_TEST_ENTRY:-}" ]]; then
         webgl) modes=(webgl-no-adapter) ;;
         *) echo "Unknown graphics test mode: $DYNLEX_TEST_GRAPHICS"; exit 1 ;;
     esac
-    scenarios=(general project farm river-inspection river)
+    scenarios=(general project libraries farm river-inspection river)
     if [[ -n "${DYNLEX_SITE_SCENARIO:-}" ]]; then
         case "$DYNLEX_SITE_SCENARIO" in
-            general|project|farm|river-inspection|river) scenarios=("$DYNLEX_SITE_SCENARIO") ;;
+            general|project|libraries|farm|river-inspection|river) scenarios=("$DYNLEX_SITE_SCENARIO") ;;
             *) echo "Unknown website scenario: $DYNLEX_SITE_SCENARIO"; exit 1 ;;
         esac
     fi

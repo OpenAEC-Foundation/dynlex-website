@@ -1,0 +1,38 @@
+import catalog.dl
+import ../state.dl
+import lib/text.dl
+
+to [filter website libraries in] {a pointer to UI instance:instance}:
+    set query to the lowercase form of ((the UI value for (the control labeled "Find a library" in instance) in instance)'s text)
+    set libraries to the website libraries
+    set count to 0
+    loop index from 0 to (the length of libraries):
+        set entry to the item at index in libraries
+        set matches to (the lowercase form of (entry's search)) contains query
+        set the value of (entry's name) in instance to (0 if matches, else -1)
+        set the value of (entry's documentation label) in instance to ((-1) if (entry's documentation = ""), else 0)
+        if matches:
+            increment count
+    set label to " library" if (count = 1), else " libraries"
+    set the text of "Library result count" in instance to ((the string form of count) + label)
+    set the value of "Library no results" in instance to (0 if (count = 0), else -1)
+
+to [notice website library search] {a pointer to UI instance:instance}:
+    filter website libraries in instance
+
+to [bind website libraries in] {a pointer to UI instance:instance}:
+    bind (the control labeled "Find a library" in instance) in instance to (the function named "notice website library search $") for event 0
+    filter website libraries in instance
+
+to get [follow website library action] {string:destination} [in] {a pointer to website state:state}:
+    if destination = "action:clear-library-search":
+        set the text of "Find a library" in (state's view's instance) to ""
+        filter website libraries in (state's view's instance)
+        return true
+    set libraries to the website libraries
+    loop index from 0 to (the length of libraries):
+        set entry to the item at index in libraries
+        if destination = entry's action:
+            request "open" containing (a JSON object containing [JSON text "url" is (entry's download), JSON flag "newTab" is false]) for purpose 0 indexed 0 in state
+            return true
+    return false

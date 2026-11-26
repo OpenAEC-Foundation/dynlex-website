@@ -1,12 +1,13 @@
 import pages/home.dl
 import pages/download.dl
+import pages/libraries.dl
 import pages/documentation.dl
 import packages/dynlex-ide/studio/page.dl
 import pages/river_characters.dl
 import pages/not_found.dl
 
 # Page data is shared by the renderer, route lookup and generated metadata.
-the site's pages means: [home page, download page, IDE page, river character page, missing page, documentation attributions page, documentation core rules page, documentation getting started page, documentation index page, documentation sections case page, documentation sections function page, documentation sections if page, documentation sections index page, documentation sections loop page, documentation sections match page, documentation terms page]
+the site's pages means: [home page, download page, libraries page, IDE page, river character page, missing page, documentation attributions page, documentation core rules page, documentation getting started page, documentation index page, documentation sections case page, documentation sections function page, documentation sections if page, documentation sections index page, documentation sections loop page, documentation sections match page, documentation terms page]
 
 document dynlex website using page appearance:
     code:
@@ -20,10 +21,12 @@ document dynlex website using page appearance:
                 link "Challenges" to "/index.html#challenges" using navigation link appearance
                 link "Language" to "/index.html#language" using navigation link appearance
                 link "IDE ↗" to "/ide/index.html" using navigation link appearance
+                link "Libraries" to "/libraries/index.html" using navigation link appearance
                 link "Docs" to "/wiki/index.html" using navigation link appearance
                 link "Download ↓" to "/download.html" using navigation link appearance
     home page
     download page
+    libraries page
     IDE page
     river character page
     missing page
