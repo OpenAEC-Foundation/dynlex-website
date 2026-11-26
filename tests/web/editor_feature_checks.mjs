@@ -10,8 +10,8 @@ export async function verifySourceNavigationAppearance({waitFor,disabled}) {
     const filename=window.colorProbe.find(item=>/\\.dl(?: · Read only)?$/.test(item.text.trim()));
     if(!filename) return false;
     const actions=window.iconProbe.filter(item=>Math.abs(item.y-filename.y)<4).sort((a,b)=>a.x-b.x);
-    if(actions.length!==7) return false;
-    const available=actions[3];
+    if(actions.length!==5) return false;
+    const available=actions[2];
     return actions.slice(0,2).every(action=>action.ink.every((value,index)=>${disabled?'value+0.01<available.ink[index]':'Math.abs(value-available.ink[index])<0.0001'}));
   })()`);
 }

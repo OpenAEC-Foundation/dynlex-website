@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {openSourceContext} from './studio_controls.mjs';
+
+export async function verifyContextualEditorActions({controls,command,evaluate,waitFor,capture,origin}) {
+  const program=await fs.readFile(new URL('./fixtures/editor_quickfix.dl',import.meta.url),'utf8');
+  const fixed=program.replace('    return value\n','    return @intrinsic("cast", value, @intrinsic("type", "int", 32))\n');
+  const query=new URLSearchParams({name:'context.dl',code:program});
+  await command('Page.navigate',{url:origin+'/ide/?'+query});
+  await waitFor('window.colorProbe?.some(item=>item.text.trim()==="context.dl")');
+  await controls.clickText('import lib/std.dl');
+  await controls.key('Home','Home',36,2);
+  for(let row=0;row<5;row++) await controls.key('ArrowDown','ArrowDown',40);
+  await controls.key('Home','Home',36);
+  for(let column=0;column<11;column++) await controls.key('ArrowRight','ArrowRight',39);
+  const bulbs='window.iconProbe.filter(item=>item.y>200 && item.y<500 && item.x<900)';
+  await waitFor(bulbs+'.length===1');
+  assert(!await evaluate('window.colorProbe.some(item=>item.text.trim()==="Convert returned value to a 32-bit integer")'),
+    'Availability must not steal keyboard focus by opening the fixes list');
+  const bulb=(await evaluate(bulbs))[0];
+  await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:bulb.x,y:bulb.y});
+  await waitFor('window.colorProbe.some(item=>item.text.trim()==="Quick fixes (Ctrl+.)")');
+  await capture('contextual-lightbulb');
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',x:bulb.x,y:bulb.y,button:'left',buttons:1,clickCount:1});
+  await waitFor(bulbs+'.length===1');
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x:bulb.x,y:bulb.y,button:'left',buttons:0,clickCount:1});
+  await waitFor('window.colorProbe.some(item=>item.text.trim()==="Convert returned value to a 32-bit integer")');
+  await capture('contextual-quick-fixes');
+  await controls.key('Enter','Enter',13);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(fixed)}`);
+  await waitFor(bulbs+'.length===0');
+  await controls.key('KeyZ','z',90,2);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
+  await waitFor(bulbs+'.length===1');
+  await controls.key('Period','.',190,2);
+  await waitFor('window.colorProbe.some(item=>item.text.trim()==="Convert returned value to a 32-bit integer")');
+  await controls.key('Escape','Escape',27);
+  await controls.key('Home','Home',36,2);
+  await waitFor(bulbs+'.length===0');
+  await openSourceContext({controls,command,waitFor},'lib/std.dl');
+  await capture('source-context-menu');
+  await controls.clickText('Go to definition (F12)');
+  await waitFor('window.colorProbe.some(item=>item.text.trim()==="std.dl · Read only")');
+  await waitFor(bulbs+'.length===0');
+  await controls.key('F10','F10',121,1);
+  await waitFor('window.colorProbe.some(item=>item.text.trim()==="Go to definition (F12)")');
+  await controls.key('Escape','Escape',27);
+  await controls.key('ArrowLeft','ArrowLeft',37,1);
+  await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
+  console.log('Quick fixes appear only when available, apply and undo through the lightbulb; right-click opens definitions for the clicked token, including read-only library sources.');
+}

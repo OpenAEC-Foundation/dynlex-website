@@ -1,6 +1,6 @@
 // Exercise the project through rendered controls and ordinary keyboard/pointer input.
 import assert from 'node:assert/strict';
-import {studioMenu,studioToolbar,sourceToolbar} from './studio_controls.mjs';
+import {studioMenu,studioToolbar,sourceToolbar,sourceContextDefinition} from './studio_controls.mjs';
 
 export async function verifyStudioProject({command,evaluate,waitFor,controls,capture,origin}) {
   const {click,clickText,key}=controls;
@@ -62,7 +62,7 @@ export async function verifyStudioProject({command,evaluate,waitFor,controls,cap
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   await key('End','End',35,2);
   for(let i=0;i<3;i++) await key('ArrowLeft','ArrowLeft',37);
-  await sourceToolbar({controls,command,evaluate,waitFor},'main.dl','Definition');
+  await sourceContextDefinition({controls,command,waitFor},'doubled');
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(contents)}`);
   await key('ArrowLeft','ArrowLeft',37,1);
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
