@@ -31,6 +31,8 @@ document Studio debug fixture:
         button "Rename file"
         button "Delete file"
         paragraph "File status" containing "" using no UI appearance
+        view group "Library picker" using no UI appearance:
+            paragraph "Library picker fields" containing "" using no UI appearance
         view group "Studio run toolbar" using no UI appearance:
             region "Idle toolbar" using no UI appearance:
                 button "Toolbar Run"
