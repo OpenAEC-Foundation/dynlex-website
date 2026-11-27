@@ -19,6 +19,7 @@ load website source "IDE source" from (the string form of "set counter to 1\npri
 toggle the Studio breakpoint in (the address of state)
 debug the Studio program in (the address of state)
 require condition ((state's studio debug's active) and ((state's programs + 2)'s phase = 1)) reporting "Debug did not compile its source snapshot"
+require condition ((the value of "Studio run toolbar" in (the address of instance)) = 1) reporting "Debug did not select the session toolbar"
 set compiled to a JSON object containing [JSON number "status" is 0, JSON number "artifact" is 42, JSON number "milliseconds" is 1]
 receive website compilation compiled for 2 in (the address of state)
 free compiled
@@ -41,6 +42,7 @@ send Studio debug command (the string form of "over") in (the address of state)
 require condition ((state's studio debug's query = 0) and (state's studio debug's paused = false)) reporting "Resume retained an inspection request"
 require condition (state's language's tools' runtime values = (0 as a pointer to JSON value)) reporting "Resume retained stale hover values"
 stop website program 2 in (the address of state)
+require condition ((the value of "Studio run toolbar" in (the address of instance)) = 0) reporting "Stop did not restore the idle toolbar"
 require condition (state's studio debug's active = false) reporting "Stop retained the debug session"
 ignore follow Studio debug action (the string form of "action:clear-breakpoints-ide") in (the address of state)
 set pending to state's requests

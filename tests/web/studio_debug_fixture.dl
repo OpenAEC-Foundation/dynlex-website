@@ -31,7 +31,36 @@ document Studio debug fixture:
         button "Rename file"
         button "Delete file"
         paragraph "File status" containing "" using no UI appearance
+        view group "Studio run toolbar" using no UI appearance:
+            region "Idle toolbar" using no UI appearance:
+                button "Toolbar Run"
+                button "Toolbar Debug"
+                button "Toolbar Stop"
+                button "Toolbar Save"
+            region "Session toolbar" using no UI appearance:
+                button "Toolbar Continue"
+                button "Toolbar Pause"
+                button "Toolbar Stop debugging"
+                button "Toolbar Step over"
+                button "Toolbar Step into"
+                button "Toolbar Step out"
+                button "Toolbar Save debugging"
+        button "Run program"
         button "Stop program"
+        button "Save source"
+        button "Copy output"
+        button "Clear output"
+        button "Create file command"
+        button "Rename file command"
+        button "Delete file command"
+        button "Explorer New"
+        button "Explorer Rename"
+        button "Explorer Delete"
+        button "Add library command"
+        button "＋ Add Library"
+        button "Console Copy"
+        button "Console Clear"
+        paragraph "Debug inspector status" containing "" using no UI appearance
         view group "Studio file prompt" using no UI appearance:
             paragraph "Prompt" using no UI appearance
         tab group "Studio inspector" using no UI appearance:
