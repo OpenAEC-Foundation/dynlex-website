@@ -155,13 +155,14 @@ def main():
             source = project / f'tests/web/{name}.dl'
             source.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / f'tests/web/{name}.dl', source)
+        # These temporary source snapshots test controller behavior, not cache recording.
         for name in native_cases:
             source = project / f'tests/web/{name}.dl'
             if name in models:
                 expected = (ROOT / f'tests/web/models/{name}.txt').read_text()
                 for suffix, options in [('.out', ['-O0']), ('.optimized.out', ['-O2']), ('.wasm', ['--emit-wasm'])]:
                     binary = project / (name + suffix)
-                    subprocess.run([str(args.compiler.resolve()), str(source), *options, '-o', str(binary)],
+                    subprocess.run([str(args.compiler.resolve()), str(source), '--no-incremental', *options, '-o', str(binary)],
                                    cwd=ROOT, check=True, timeout=180)
                     if suffix == '.wasm':
                         subprocess.run(['node', str(ROOT / 'tests/web/site_model_runtime.mjs'), str(binary),
@@ -178,13 +179,13 @@ def main():
                 continue
             binary = project / f'{name}.wasm'
             optimization = '-O0' if name in renderers else '-O2'
-            subprocess.run([str(args.compiler.resolve()), str(source), '--emit-wasm', optimization, '-o', str(binary)],
+            subprocess.run([str(args.compiler.resolve()), str(source), '--no-incremental', '--emit-wasm', optimization, '-o', str(binary)],
                            cwd=ROOT, check=True, timeout=compilation_budget(name))
             subprocess.run(['node', str(ROOT / f'tests/web/{name}.mjs'), str(binary)],
                            cwd=ROOT, check=True, timeout=30)
             if name in renderers:
                 binary = project / f'{name}.optimized.wasm'
-                subprocess.run([str(args.compiler.resolve()), str(source), '--emit-wasm', '-O2', '-o', str(binary)],
+                subprocess.run([str(args.compiler.resolve()), str(source), '--no-incremental', '--emit-wasm', '-O2', '-o', str(binary)],
                                cwd=ROOT, check=True, timeout=180)
                 subprocess.run(['node', str(ROOT / f'tests/web/{name}.mjs'), str(binary)],
                                cwd=ROOT, check=True, timeout=30)
