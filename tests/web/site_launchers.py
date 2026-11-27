@@ -83,6 +83,13 @@ with open(os.environ['DYNLEX_LAUNCH_CAPTURE'],'a') as output:
         self.assertIn('Unknown website scenario: missing', result.stdout)
         self.assertEqual(calls, [])
 
+    def test_editor_context_can_be_checked_independently(self):
+        result, calls = self.run_launcher(DYNLEX_SITE_SCENARIO='editor-context', DYNLEX_TEST_GRAPHICS='webgl-no-api')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]['scenario'], 'editor-context')
+        self.assertEqual(calls[0]['args'][6], 'webgl-no-api')
+
 
 if __name__ == '__main__':
     unittest.main()

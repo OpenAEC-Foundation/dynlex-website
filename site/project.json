@@ -3,15 +3,15 @@
   "dependencies": {
     "dynlex-ui": {
       "archive": "dependencies/dynlex-ui.zip",
-      "contentHash": "efc326397ce66193d8b48c8fc2e80cd397f240edb419c25e13433d664346b863"
+      "contentHash": "54259ee97f3273fd8b40f90865cd5eb503ffaea20d3559c2431104dde624eae6"
     },
     "dynlex-web": {
       "archive": "dependencies/dynlex-web.zip",
-      "contentHash": "50d352a6dd83553304e94f1855d7bb2286414dd57e31b65c3d2e33c4808e314c"
+      "contentHash": "00ca64f582d19447e907a6301b0536c24a116f0f9f1ca01c74ea4b5948c83a86"
     },
     "dynlex-ide": {
       "archive": "dependencies/dynlex-ide.zip",
-      "contentHash": "76962392781c1c76bd23df82d42aa7f0e2977064727fc0a16e4d07512f4c9199"
+      "contentHash": "02a0b7e7f343945474d21f9b325481477e2211cbf315c5d11634008d7cb2a5c8"
     }
   },
   "fonts": [

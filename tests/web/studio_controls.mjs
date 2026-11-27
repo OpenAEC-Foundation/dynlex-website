@@ -14,6 +14,7 @@ export async function studioToolbar({controls,evaluate},caption) {
 }
 
 export async function sourceToolbar({controls,command,evaluate,waitFor},filename,action) {
+  await controls.revealText(filename);
   const captions={Back:'Go back (Alt+Left)','Main file':'Main file',Outline:'Outline (Ctrl+Shift+O)',Instances:'Instances',Find:'Find (Ctrl+F)'};
   const offset={Back:-54,'Main file':-22,Outline:22,Instances:54,Find:86};
   const label=await evaluate(`window.colorProbe.find(item=>item.text.trim()===${JSON.stringify(filename)} && item.x<innerWidth*0.7)`);

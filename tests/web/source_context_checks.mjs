@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import {openSourceContext} from './studio_controls.mjs';
+import {openSourceContext,studioToolbar} from './studio_controls.mjs';
 
 export async function verifyContextualEditorActions({controls,command,evaluate,waitFor,capture,origin}) {
   const program=await fs.readFile(new URL('./fixtures/editor_quickfix.dl',import.meta.url),'utf8');
@@ -42,10 +42,57 @@ export async function verifyContextualEditorActions({controls,command,evaluate,w
   await controls.clickText('Go to definition (F12)');
   await waitFor('window.colorProbe.some(item=>item.text.trim()==="std.dl · Read only")');
   await waitFor(bulbs+'.length===0');
-  await controls.key('F10','F10',121,1);
+  await controls.key('F10','F10',121,8);
   await waitFor('window.colorProbe.some(item=>item.text.trim()==="Go to definition (F12)")');
   await controls.key('Escape','Escape',27);
   await controls.key('ArrowLeft','ArrowLeft',37,1);
   await waitFor(`document.querySelector('textarea').value===${JSON.stringify(program)}`);
   console.log('Quick fixes appear only when available, apply and undo through the lightbulb; right-click opens definitions for the clicked token, including read-only library sources.');
+}
+
+export async function verifyDebugLibrarySource({controls,command,waitFor,capture,evaluate,origin}) {
+  const code='import lib/std.dl\nimport packages/dynlex-ui/ui/geometry.dl\nignore (the UI intersection of (UI box at 0 0 sized 10 10) and (UI box at 2 2 sized 10 10))\n';
+  await command('Page.navigate',{url:origin+'/ide/?'+new URLSearchParams({name:'library-debug.dl',code})});
+  await waitFor('window.colorProbe?.some(item=>item.text.trim()==="library-debug.dl")');
+  await studioToolbar({controls,evaluate},'Debug');
+  await waitFor('window.siteProbe.debugEvents.some(event=>event.type==="program-paused")');
+  await controls.key('F11','F11',122);
+  await waitFor('window.siteProbe.debugEvents.filter(event=>event.type==="program-paused").at(-1)?.frames[0].uri.includes("/packages/dynlex-ui/ui/geometry.dl")');
+  await waitFor('document.querySelector("textarea")?.readOnly && window.colorProbe.some(item=>item.text.trim()==="geometry.dl · Read only")');
+  await capture('debugger-sdk-source');
+  await controls.key('F5','F5',116,8);
+  await waitFor('window.siteProbe.visible.includes("Stopped.")');
+  await command('Page.reload');
+  await waitFor('window.colorProbe?.some(item=>item.text.trim()==="library-debug.dl")');
+  await evaluate('window.siteProbe.holdSourceReply=true');
+  await studioToolbar({controls,evaluate},'Debug');
+  await waitFor('window.siteProbe.debugEvents.some(event=>event.type==="program-paused")');
+  await controls.key('F11','F11',122);
+  await waitFor('window.siteProbe.delayedSources===1');
+  await controls.key('F5','F5',116,8);
+  await waitFor('window.siteProbe.visible.includes("Stopped.")');
+  await new Promise(resolve=>setTimeout(resolve,650));
+  assert.equal(await evaluate('document.querySelector("textarea").value'),code);
+  assert.equal(await evaluate('document.querySelector("textarea").readOnly'),false);
+  await capture('debugger-source-cancelled');
+  const files={
+    'main.dl':'import lib/std.dl\nimport first.dl\nprint line (outer result for 1)\n',
+    'first.dl':'import tools/second.dl\nto get outer result for {value}:\n    return inner result for value\n',
+    'tools/second.dl':'to get inner result for {value}:\n    return value + 1\n'
+  };
+  await evaluate(`localStorage.setItem('dynlex-studio-program-project',${JSON.stringify(JSON.stringify({entry:'main.dl',files}))})`);
+  await command('Page.navigate',{url:origin+'/ide/'});
+  await waitFor('window.colorProbe?.some(item=>item.text.trim()==="main.dl")');
+  await studioToolbar({controls,evaluate},'Debug');
+  await waitFor('window.siteProbe.debugEvents.some(event=>event.type==="program-paused")');
+  await controls.key('F11','F11',122);
+  await waitFor(`document.querySelector('textarea')?.value===${JSON.stringify(files['first.dl'])}`);
+  assert.equal(await evaluate('document.querySelector("textarea").readOnly'),false);
+  await controls.key('F11','F11',122);
+  await waitFor(`document.querySelector('textarea')?.value===${JSON.stringify(files['tools/second.dl'])}`);
+  assert.equal(await evaluate('document.querySelector("textarea").readOnly'),false);
+  await controls.key('F5','F5',116);
+  await waitFor('window.siteProbe.programOutput==="2\\n"');
+  await capture('debugger-unvisited-project-sources');
+  console.log('Step Into opens unvisited SDK and nested project sources; Stop discards a delayed source reply.');
 }

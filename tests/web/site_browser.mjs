@@ -3,7 +3,7 @@ import {verifyStudioDebugger} from './studio_debugger_checks.mjs';
 import {verifyStudioGeometry,verifyStudioShell} from './studio_layout_checks.mjs';
 import {studioMenu} from './studio_controls.mjs';
 import {verifyStudioProject} from './studio_project_checks.mjs';
-import {verifyContextualEditorActions} from './source_context_checks.mjs';
+import {verifyContextualEditorActions,verifyDebugLibrarySource} from './source_context_checks.mjs';
 import {verifyLibraryDirectory} from './library_directory_checks.mjs';
 import {browserRelease as release} from './release_fixture.mjs';
 import {compilerPath} from '../../scripts/dependencies.mjs';
@@ -293,6 +293,8 @@ try {
     const BrowserWorker = window.Worker;
     window.Worker = class extends BrowserWorker {
       postMessage(message, ...args) {
+        if(message.type==='language' && message.payload.message.method==='dynlex/readDocument' && window.siteProbe.holdSourceReply)
+          this.delayedSources.add(message.id);
         if(message.type==='debug' && message.payload.command==='variables' && window.siteProbe.holdInspectorReply)
           this.delayedInspections.add(message.id);
         if (message.type === 'compile') window.siteProbe.compilations.push(message.payload.entry);
@@ -307,8 +309,15 @@ try {
       constructor(...args) {
         super(...args);
         this.delayedInspections=new Set();
+        this.delayedSources=new Set();
         this.addEventListener('message', event => {
           const {data}=event;
+          if(this.delayedSources.delete(data.id)) {
+            event.stopImmediatePropagation();
+            window.siteProbe.delayedSources=(window.siteProbe.delayedSources??0)+1;
+            setTimeout(()=>this.dispatchEvent(new MessageEvent('message',{data})),500);
+            return;
+          }
           if(this.delayedInspections.delete(data.id)) {
             event.stopImmediatePropagation();
             window.siteProbe.delayedInspections=(window.siteProbe.delayedInspections??0)+1;
@@ -397,6 +406,10 @@ try {
     await command('Page.navigate',{url:(process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`)+'/ide/'});
     await verifyStudioGeometry({command,evaluate,waitFor,controls,capture});
     await verifyStudioShell({command,evaluate,waitFor,controls,capture});
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'editor-context') {
+    const context={command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`};
+    await verifyContextualEditorActions(context);
+    await verifyDebugLibrarySource(context);
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'project') {
     await verifyStudioProject({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
     await verifyContextualEditorActions({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
