@@ -8,9 +8,13 @@ the site's pages means: [home page, IDE page, river character page]
 document startup fixture:
     code:
         use UI palette (the website colors for false) in this window
+    view group "Site navigation visibility" using no UI appearance:
+        paragraph "Startup navigation" using no UI appearance
     home page
     IDE page
     river character page
+    view group "Site footer visibility" using no UI appearance:
+        paragraph "Startup footer" using no UI appearance
 
 set instance to an instance of startup fixture
 set driver to the value at (the test UI driver)
@@ -31,6 +35,8 @@ receive website environment response in (the address of state)
 require condition (instance's reduced motion) reporting "The environment did not reach the shared UI instance"
 require condition ((state's river inspection's opened) and (state's river inspection's clock's playing = false)) reporting "The initial inspection route ignored reduced motion"
 require condition (instance's page = river character page's content) reporting "Startup did not open the requested route"
+require condition ((the value of "Site navigation visibility" in (the address of instance)) = 0) reporting "The initial non-Studio route hid website navigation"
+require condition ((the value of "Site footer visibility" in (the address of instance)) = 0) reporting "The initial non-Studio route hid the website footer"
 require condition ((the UI value for (the control labeled "Pause loops" in (the address of instance)) in (the address of instance))'s text = "Play loops") reporting "The initial pause control disagreed with the reduced-motion clock"
 
 set pending to state's requests
