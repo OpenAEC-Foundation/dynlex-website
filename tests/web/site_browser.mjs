@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {verifySourceLineCommit} from './source_commit_checks.mjs';
 import {verifyStudioDebugger} from './studio_debugger_checks.mjs';
 import {verifyStudioGeometry,verifyStudioShell} from './studio_layout_checks.mjs';
 import {studioMenu} from './studio_controls.mjs';
@@ -152,6 +153,8 @@ try {
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
     window.siteProbe = { debugEvents: [], paints: 0, api: '', texts: [], visible: [], diagnostics: [], completions: [], compilations: [], builds: [], downloads: [], programOutput: '', pictures: [], farmDraws: [], farmFrames: [], farmTimings: [], glDraws: 0, farmClouds: [], farmWeather: [], farmMeshUploads: 0, nonPrintingBudgetPrograms: 0, heroFrames: 0, riverTitle: null };
     window.siteProbe.projectWrites = [];
+    window.siteProbe.languageMessages = [];
+    window.siteProbe.languageReplies = [];
     const storeProject = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key,value) {
       const result = storeProject.call(this,key,value);
@@ -293,6 +296,11 @@ try {
     const BrowserWorker = window.Worker;
     window.Worker = class extends BrowserWorker {
       postMessage(message, ...args) {
+        if(message.type==='language' && message.payload.message) {
+          const request=structuredClone(message.payload.message);
+          window.siteProbe.languageMessages.push(request);
+          this.languageRequests.set(message.id,request);
+        }
         if(message.type==='language' && message.payload.message.method==='dynlex/readDocument' && window.siteProbe.holdSourceReply)
           this.delayedSources.add(message.id);
         if(message.type==='debug' && message.payload.command==='variables' && window.siteProbe.holdInspectorReply)
@@ -308,10 +316,15 @@ try {
       }
       constructor(...args) {
         super(...args);
+        this.languageRequests=new Map();
         this.delayedInspections=new Set();
         this.delayedSources=new Set();
         this.addEventListener('message', event => {
           const {data}=event;
+          if(this.languageRequests.has(data.id)) {
+            window.siteProbe.languageReplies.push({request:this.languageRequests.get(data.id),response:data.result});
+            this.languageRequests.delete(data.id);
+          }
           if(this.delayedSources.delete(data.id)) {
             event.stopImmediatePropagation();
             window.siteProbe.delayedSources=(window.siteProbe.delayedSources??0)+1;
@@ -406,6 +419,8 @@ try {
     await command('Page.navigate',{url:(process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`)+'/ide/'});
     await verifyStudioGeometry({command,evaluate,waitFor,controls,capture});
     await verifyStudioShell({command,evaluate,waitFor,controls,capture});
+  } else if (process.env.DYNLEX_SITE_SCENARIO === 'source-commit') {
+    await verifySourceLineCommit({command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`});
   } else if (process.env.DYNLEX_SITE_SCENARIO === 'editor-context') {
     const context={command,evaluate,waitFor,controls,capture,origin:process.env.DYNLEX_STUDIO_ORIGIN ?? `http://127.0.0.1:${server.address().port}`};
     await verifyContextualEditorActions(context);
